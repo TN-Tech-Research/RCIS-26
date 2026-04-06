@@ -8,6 +8,16 @@ interface DetailPanelProps {
   onClose: () => void;
 }
 
+// ── Envelope icon ────────────────────────────────────────────────────────────
+
+function EnvelopeIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path d="M2 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5zm2 0 6 4.5L16 5H4zm0 2.5V15h12V7.5l-6 4.5-6-4.5z"/>
+    </svg>
+  );
+}
+
 // ── Person chip with copy/compose popup ─────────────────────────────────────
 
 interface PopupPos { x: number; y: number }
@@ -21,8 +31,7 @@ function PersonChip({ person }: { person: Person }) {
 
   function openPopup(e: React.MouseEvent) {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    // Prefer below the button; if near bottom of viewport, flip above
-    const estimatedH = 80;
+    const estimatedH = 110;
     const y = rect.bottom + 4 + estimatedH > window.innerHeight
       ? rect.top - estimatedH - 4
       : rect.bottom + 4;
@@ -59,12 +68,10 @@ function PersonChip({ person }: { person: Person }) {
 
       {popup && (
         <>
-          {/* Backdrop to dismiss */}
           <div
             style={{ position: 'fixed', inset: 0, zIndex: 900 }}
             onClick={() => setPopup(null)}
           />
-          {/* Popup card */}
           <div
             style={{
               position: 'fixed',
@@ -79,17 +86,14 @@ function PersonChip({ person }: { person: Person }) {
               minWidth: 220,
             }}
           >
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#333', marginBottom: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#333', marginBottom: 6 }}>
               {person.displayName}
             </div>
             <div style={{ fontSize: 11, color: '#777', marginBottom: 10, fontFamily: 'monospace' }}>
               {person.email}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <button
-                onClick={copyEmail}
-                style={popupBtnStyle('#f0f4ff', '#0057b7')}
-              >
+              <button onClick={copyEmail} style={popupBtnStyle('#f0f4ff', '#0057b7')}>
                 Copy email address
               </button>
               <a
@@ -99,6 +103,7 @@ function PersonChip({ person }: { person: Person }) {
                   ...popupBtnStyle('#f5f5f5', '#333'),
                   textDecoration: 'none',
                   textAlign: 'center',
+                  boxSizing: 'border-box',
                 }}
               >
                 Compose email
@@ -124,19 +129,53 @@ function popupBtnStyle(bg: string, color: string): React.CSSProperties {
     fontWeight: 500,
     display: 'block',
     width: '100%',
+    boxSizing: 'border-box',
   };
 }
 
 // ── Person field ─────────────────────────────────────────────────────────────
 
-function PersonField({ label, raw }: { label: string; raw: string }) {
+function PersonField({
+  label,
+  raw,
+  emailAll = false,
+}: {
+  label: string;
+  raw: string;
+  emailAll?: boolean;
+}) {
   if (raw === '—') return null;
   const people = parsePeople(raw);
   if (people.length === 0) return null;
 
+  const emailAddresses = people.map(p => p.email).filter(Boolean) as string[];
+  const mailtoHref = emailAddresses.length > 0
+    ? `mailto:${emailAddresses.join(',')}`
+    : null;
+
   return (
     <div style={{ marginBottom: 10 }}>
-      <div style={labelStyle}>{label}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
+        <span style={labelStyle}>{label}</span>
+        {emailAll && mailtoHref && (
+          <a
+            href={mailtoHref}
+            title={`Compose email to all ${label.toLowerCase()}`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              color: '#0057b7',
+              opacity: 0.7,
+              lineHeight: 1,
+              textDecoration: 'none',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+            onMouseLeave={e => (e.currentTarget.style.opacity = '0.7')}
+          >
+            <EnvelopeIcon />
+          </a>
+        )}
+      </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 6px', fontSize: 14, lineHeight: 1.6 }}>
         {people.map((p, i) => (
           <span key={i} style={{ display: 'inline-flex', alignItems: 'center' }}>
@@ -151,7 +190,7 @@ function PersonField({ label, raw }: { label: string; raw: string }) {
   );
 }
 
-// ── Plain text field ──────────────────────────────────────────────────────────
+// ── Plain text field ─────────────────────────────────────────────────────────
 
 function Field({ label, value }: { label: string; value: string }) {
   if (value === '—') return null;
@@ -169,7 +208,6 @@ const labelStyle: React.CSSProperties = {
   color: '#888',
   textTransform: 'uppercase',
   letterSpacing: '0.05em',
-  marginBottom: 3,
 };
 
 // ── Panel ────────────────────────────────────────────────────────────────────
@@ -239,7 +277,7 @@ export function DetailPanel({ record, onClose }: DetailPanelProps) {
       <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
         <Field label="Title" value={record.title} />
         <PersonField label="Primary Author" raw={record.primaryAuthor} />
-        <PersonField label="Project Authors" raw={record.projectAuthors} />
+        <PersonField label="Project Authors" raw={record.projectAuthors} emailAll />
         <Field label="Classification" value={record.classification} />
         <PersonField label="Faculty Advisor" raw={record.facultyAdvisor} />
         <Field label="Project Type" value={record.projectType} />
@@ -247,7 +285,7 @@ export function DetailPanel({ record, onClose }: DetailPanelProps) {
         {record.abstract !== '—' && (
           <div style={{ marginTop: 4 }}>
             <div style={labelStyle}>Abstract</div>
-            <div style={{ fontSize: 13, color: '#333', lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
+            <div style={{ fontSize: 13, color: '#333', lineHeight: 1.65, whiteSpace: 'pre-wrap', marginTop: 3 }}>
               {record.abstract}
             </div>
           </div>
