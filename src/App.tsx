@@ -6,6 +6,8 @@ import { parsePeople } from './utils/nameParser';
 import { TableMap } from './components/TableMap';
 import { DetailPanel } from './components/DetailPanel';
 import { Legend } from './components/Legend';
+import MobileView from './components/MobileView';
+import { useMobile } from './hooks/useMobile';
 import rawCsv from '../Table_numbers.csv?raw';
 import rcisLogo from '../RCIS.png';
 
@@ -37,6 +39,8 @@ export default function App() {
 
   const authorSet = useMemo(() => new Set(authorNames), [authorNames]);
 
+  const isMobile = useMobile();
+
   function handleAuthorInput(value: string) {
     setInputValue(value);
     if (value === '') {
@@ -61,6 +65,10 @@ export default function App() {
 
   // Only show datalist options after at least one character has been typed
   const showSuggestions = inputValue.length >= 1;
+
+  if (isMobile) {
+    return <MobileView records={records} logoSrc={rcisLogo} />;
+  }
 
   return (
     <div style={{
