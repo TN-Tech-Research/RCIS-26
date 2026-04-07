@@ -76,12 +76,13 @@ export default function App() {
       display: 'flex', flexDirection: 'column', height: '100vh',
       fontFamily: 'system-ui, -apple-system, sans-serif', background: 'transparent',
     }}>
-      <ParticleBackground />
       {/* Placeholder colour — can't be set inline, needs a real CSS rule */}
       <style>{`#author-search::placeholder { color: rgba(255,255,255,0.65); }`}</style>
 
       {/* Header */}
       <header style={{
+        position: 'relative',
+        zIndex: 1,
         height: HEADER_H,
         padding: '0 20px',
         background: '#4b2e83',
@@ -155,14 +156,17 @@ export default function App() {
       </header>
 
       {/* Legend */}
-      <Legend
-        items={deptStats}
-        highlightedDept={highlightedDept}
-        onHighlight={setHighlightedDept}
-      />
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <Legend
+          items={deptStats}
+          highlightedDept={highlightedDept}
+          onHighlight={setHighlightedDept}
+        />
+      </div>
 
       {/* Main content */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div style={{ position: 'relative', display: 'flex', flex: 1, overflow: 'hidden' }}>
+        <ParticleBackground />
         <div style={{ flex: 1, overflow: 'auto', padding: 16, boxSizing: 'border-box' }}>
           {records.length === 0 ? (
             <div style={{ padding: 32, color: '#888', fontSize: 14 }}>No records found in CSV.</div>

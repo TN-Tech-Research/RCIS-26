@@ -33,7 +33,7 @@ function initParticles(w: number, h: number): Particle[] {
       vy: baseVy,
       baseVx,
       baseVy,
-      opacity: 0.08 + Math.random() * 0.10,
+      opacity: 0.35 + Math.random() * 0.30,
       size: 24 + Math.random() * 8,
     });
   }
@@ -91,8 +91,9 @@ export function ParticleBackground() {
     let cssHeight = 0;
 
     const resize = () => {
-      cssWidth = window.innerWidth;
-      cssHeight = window.innerHeight;
+      const parent = canvas.parentElement!;
+      cssWidth = parent.offsetWidth;
+      cssHeight = parent.offsetHeight;
       const dpr = window.devicePixelRatio || 1;
 
       canvas.width = Math.round(cssWidth * dpr);
@@ -168,11 +169,10 @@ export function ParticleBackground() {
     <canvas
       ref={canvasRef}
       style={{
-        position: 'fixed',
+        position: 'absolute',
         inset: 0,
         width: '100%',
         height: '100%',
-        zIndex: -1,
         pointerEvents: 'none',
       }}
     />
