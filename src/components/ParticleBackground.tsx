@@ -50,12 +50,18 @@ export function ParticleBackground() {
 
   // Load the sprite image once
   useEffect(() => {
+    let cancelled = false;
     const img = new Image();
     img.onload = () => {
+      if (cancelled) return;
       imgRef.current = img;
       setImgLoaded(true);
     };
     img.src = particleIconUrl;
+    return () => {
+      cancelled = true;
+      img.onload = null;
+    };
   }, []);
 
   // Track mouse position via window events (canvas has pointer-events: none)
