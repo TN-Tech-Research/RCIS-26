@@ -8,6 +8,7 @@ import { DetailPanel } from './components/DetailPanel';
 import { Legend } from './components/Legend';
 import MobileView from './components/MobileView';
 import { useMobile } from './hooks/useMobile';
+import { ParticleBackground } from './components/ParticleBackground';
 import rawCsv from '../Table_numbers.csv?raw';
 import rcisLogo from '../RCIS.png';
 
@@ -73,8 +74,9 @@ export default function App() {
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', height: '100vh',
-      fontFamily: 'system-ui, -apple-system, sans-serif', background: '#fff',
+      fontFamily: 'system-ui, -apple-system, sans-serif', background: 'transparent',
     }}>
+      <ParticleBackground />
       {/* Placeholder colour — can't be set inline, needs a real CSS rule */}
       <style>{`#author-search::placeholder { color: rgba(255,255,255,0.65); }`}</style>
 

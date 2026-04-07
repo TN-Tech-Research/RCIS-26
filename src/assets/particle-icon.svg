@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" fill="none">
+  <!-- Lightbulb body -->
+  <path d="M13 31 C13 13 51 13 51 31 C51 40 45 47 43 53 L21 53 C19 47 13 40 13 31 Z"
+        stroke="#b3a8cb" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Bulb base horizontal lines -->
+  <line x1="21" y1="57" x2="43" y2="57" stroke="#b3a8cb" stroke-width="3" stroke-linecap="round"/>
+  <line x1="24" y1="63" x2="40" y2="63" stroke="#b3a8cb" stroke-width="3" stroke-linecap="round"/>
+  <line x1="28" y1="69" x2="36" y2="69" stroke="#b3a8cb" stroke-width="3" stroke-linecap="round"/>
+  <!-- Pencil shaft -->
+  <rect x="28.5" y="16" width="7" height="35" rx="1"
+        stroke="#b3a8cb" stroke-width="2.5"/>
+  <!-- Pencil tip -->
+  <path d="M28.5 16 L32 8 L35.5 16"
+        stroke="#b3a8cb" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Pencil eraser line -->
+  <line x1="28.5" y1="51" x2="35.5" y2="51"
+        stroke="#b3a8cb" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
