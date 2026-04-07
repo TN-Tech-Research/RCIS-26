@@ -85,6 +85,7 @@ export default function App() {
       background: 'transparent',
     }}>
       <style>{`
+        html, body { overflow: hidden; margin: 0; padding: 0; }
         .search-input::placeholder { color: rgba(255,255,255,0.5); }
         .search-input:focus {
           border-color: rgba(255,255,255,0.48) !important;
@@ -238,9 +239,10 @@ export default function App() {
       )}
 
       {/* ── Main content ─────────────────────────────────────────────────────── */}
-      <div style={{ position: 'relative', display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div style={{ position: 'relative', flex: 1, overflow: 'hidden' }}>
         <ParticleBackground />
-        <div style={{ flex: 1, overflow: 'auto', padding: 16, boxSizing: 'border-box' }}>
+        {/* Map always fills the full area — panel overlays it, never shrinks it */}
+        <div style={{ position: 'absolute', inset: 0, padding: 12, boxSizing: 'border-box' }}>
           {records.length === 0 ? (
             <div style={{ padding: 32, color: '#888', fontSize: 14 }}>
               No records found in CSV.

@@ -92,12 +92,13 @@ export function TableMap({
   }, [onSelect]);
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <svg
         ref={svgRef}
-        width={SVG_W}
-        height={svgH}
+        width="100%"
+        height="100%"
         viewBox={`0 0 ${SVG_W} ${svgH}`}
+        preserveAspectRatio="xMidYMid meet"
         aria-label="Table layout map"
         role="img"
         style={{ display: 'block', userSelect: 'none' }}

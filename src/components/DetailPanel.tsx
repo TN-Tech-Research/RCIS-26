@@ -22,9 +22,8 @@ const PANEL_CSS = `
   .dp-enter { animation: drawerSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
   .dp-exit  { animation: drawerSlideOut 0.22s cubic-bezier(0.4, 0, 0.8, 1) forwards; }
 
-  .dp-scroll::-webkit-scrollbar { width: 4px; }
-  .dp-scroll::-webkit-scrollbar-track { background: transparent; }
-  .dp-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.13); border-radius: 4px; }
+  .dp-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+  .dp-scroll::-webkit-scrollbar { display: none; }
 
   .dp-close:hover { background: rgba(0,0,0,0.07) !important; color: #111 !important; }
   .dp-close:focus-visible { outline: 2px solid #4b2e83; outline-offset: 2px; }
@@ -242,19 +241,19 @@ export function DetailPanel({ record, onClose }: DetailPanelProps) {
       className={closing ? 'dp-exit' : 'dp-enter'}
       onAnimationEnd={handleAnimationEnd}
       style={{
-        position: 'relative',
+        position: 'absolute',
+        right: 0,
+        top: 8,
+        bottom: 0,
         zIndex: 10,
         width: 360,
         minWidth: 300,
-        flexShrink: 0,
         display: 'flex',
         flexDirection: 'column',
         borderLeft: '1px solid rgba(75,46,131,0.18)',
         borderRadius: '12px 0 0 12px',
         background: 'linear-gradient(160deg, #ede9f8 0%, #e0daf0 60%, #d8d2ec 100%)',
         boxShadow: '-6px 0 32px rgba(45,26,94,0.13)',
-        marginTop: 8,
-        height: 'calc(100% - 8px)',
         overflow: 'hidden',
         willChange: 'transform',
       }}
