@@ -87,17 +87,29 @@ export function ParticleBackground() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d')!;
 
+    let cssWidth = 0;
+    let cssHeight = 0;
+
     const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      particlesRef.current = initParticles(canvas.width, canvas.height);
+      cssWidth = window.innerWidth;
+      cssHeight = window.innerHeight;
+      const dpr = window.devicePixelRatio || 1;
+
+      canvas.width = Math.round(cssWidth * dpr);
+      canvas.height = Math.round(cssHeight * dpr);
+      canvas.style.width = `${cssWidth}px`;
+      canvas.style.height = `${cssHeight}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      particlesRef.current = initParticles(cssWidth, cssHeight);
     };
     resize();
 
     let rafId: number;
 
     const tick = () => {
-      const { width: w, height: h } = canvas;
+      const w = cssWidth;
+      const h = cssHeight;
       const mouse = mousePosRef.current;
       const img = imgRef.current!;
       const particles = particlesRef.current;
