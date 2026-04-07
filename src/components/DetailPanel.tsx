@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ProjectRecord } from '../types';
 import { getDepartmentColor } from '../utils/colorMap';
 import { parsePeople, Person } from '../utils/nameParser';
@@ -8,17 +8,58 @@ interface DetailPanelProps {
   onClose: () => void;
 }
 
-// ── Envelope icon ────────────────────────────────────────────────────────────
+// ── Styles (injected once) ────────────────────────────────────────────────────
+
+const PANEL_CSS = `
+  @keyframes drawerSlideIn {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(0); }
+  }
+  @keyframes drawerSlideOut {
+    from { transform: translateX(0); }
+    to   { transform: translateX(100%); }
+  }
+  .dp-enter { animation: drawerSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .dp-exit  { animation: drawerSlideOut 0.22s cubic-bezier(0.4, 0, 0.8, 1) forwards; }
+
+  .dp-scroll::-webkit-scrollbar { width: 4px; }
+  .dp-scroll::-webkit-scrollbar-track { background: transparent; }
+  .dp-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.13); border-radius: 4px; }
+
+  .dp-close:hover { background: rgba(0,0,0,0.07) !important; color: #111 !important; }
+  .dp-close:focus-visible { outline: 2px solid #4b2e83; outline-offset: 2px; }
+
+  .dp-chip { background: none; border: none; padding: 0 2px; margin: 0; cursor: pointer;
+    font-family: inherit; font-size: inherit; color: #5b3eab;
+    text-decoration: none; border-radius: 3px; transition: background 0.12s; }
+  .dp-chip:hover { background: rgba(91,62,171,0.08); }
+
+  .dp-popup-btn { display: block; width: 100%; box-sizing: border-box;
+    border-radius: 6px; padding: 7px 12px; font-family: inherit; font-size: 12px;
+    font-weight: 500; cursor: pointer; border: 1px solid rgba(0,0,0,0.1);
+    transition: background 0.12s; }
+`;
+
+let styleInjected = false;
+function ensureStyles() {
+  if (styleInjected) return;
+  styleInjected = true;
+  const el = document.createElement('style');
+  el.textContent = PANEL_CSS;
+  document.head.appendChild(el);
+}
+
+// ── Envelope icon ─────────────────────────────────────────────────────────────
 
 function EnvelopeIcon() {
   return (
-    <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+    <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
       <path d="M2 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5zm2 0 6 4.5L16 5H4zm0 2.5V15h12V7.5l-6 4.5-6-4.5z"/>
     </svg>
   );
 }
 
-// ── Person chip with copy/compose popup ─────────────────────────────────────
+// ── Person chip ───────────────────────────────────────────────────────────────
 
 interface PopupPos { x: number; y: number }
 
@@ -26,7 +67,7 @@ function PersonChip({ person }: { person: Person }) {
   const [popup, setPopup] = useState<PopupPos | null>(null);
 
   if (!person.email) {
-    return <span style={{ color: '#222' }}>{person.displayName}</span>;
+    return <span style={{ color: '#1a1a2e' }}>{person.displayName}</span>;
   }
 
   function openPopup(e: React.MouseEvent) {
@@ -45,24 +86,7 @@ function PersonChip({ person }: { person: Person }) {
 
   return (
     <>
-      <button
-        onClick={openPopup}
-        title={`Email: ${person.email}`}
-        style={{
-          background: 'none',
-          border: 'none',
-          padding: '1px 3px',
-          margin: 0,
-          cursor: 'pointer',
-          fontFamily: 'inherit',
-          fontSize: 'inherit',
-          color: '#0057b7',
-          textDecoration: 'underline',
-          textDecorationStyle: 'dotted',
-          textUnderlineOffset: 2,
-          borderRadius: 3,
-        }}
-      >
+      <button className="dp-chip" onClick={openPopup} title={`Email: ${person.email}`}>
         {person.displayName}
       </button>
 
@@ -72,38 +96,33 @@ function PersonChip({ person }: { person: Person }) {
             style={{ position: 'fixed', inset: 0, zIndex: 900 }}
             onClick={() => setPopup(null)}
           />
-          <div
-            style={{
-              position: 'fixed',
-              left: popup.x,
-              top: popup.y,
-              zIndex: 901,
-              background: '#fff',
-              border: '1px solid #d0d0d8',
-              borderRadius: 8,
-              boxShadow: '0 6px 24px rgba(0,0,0,0.18)',
-              padding: '10px 12px',
-              minWidth: 220,
-            }}
-          >
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#333', marginBottom: 6 }}>
+          <div style={{
+            position: 'fixed', left: popup.x, top: popup.y, zIndex: 901,
+            background: '#fff', border: '1px solid rgba(0,0,0,0.1)',
+            borderRadius: 10, boxShadow: '0 8px 32px rgba(0,0,0,0.16)',
+            padding: '12px 14px', minWidth: 224,
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#111', marginBottom: 4 }}>
               {person.displayName}
             </div>
-            <div style={{ fontSize: 11, color: '#777', marginBottom: 10, fontFamily: 'monospace' }}>
+            <div style={{ fontSize: 11, color: '#888', marginBottom: 10, fontFamily: 'monospace' }}>
               {person.email}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <button onClick={copyEmail} style={popupBtnStyle('#f0f4ff', '#0057b7')}>
+              <button
+                className="dp-popup-btn"
+                onClick={copyEmail}
+                style={{ background: '#f0eeff', color: '#4b2e83' }}
+              >
                 Copy email address
               </button>
               <a
                 href={`mailto:${person.email}`}
                 onClick={() => setPopup(null)}
+                className="dp-popup-btn"
                 style={{
-                  ...popupBtnStyle('#f5f5f5', '#333'),
-                  textDecoration: 'none',
-                  textAlign: 'center',
-                  boxSizing: 'border-box',
+                  background: '#f5f5f7', color: '#333',
+                  textDecoration: 'none', textAlign: 'center',
                 }}
               >
                 Compose email
@@ -116,73 +135,37 @@ function PersonChip({ person }: { person: Person }) {
   );
 }
 
-function popupBtnStyle(bg: string, color: string): React.CSSProperties {
-  return {
-    background: bg,
-    border: '1px solid rgba(0,0,0,0.12)',
-    borderRadius: 5,
-    padding: '6px 12px',
-    cursor: 'pointer',
-    fontFamily: 'inherit',
-    fontSize: 12,
-    color,
-    fontWeight: 500,
-    display: 'block',
-    width: '100%',
-    boxSizing: 'border-box',
-  };
-}
+// ── Person field ──────────────────────────────────────────────────────────────
 
-// ── Person field ─────────────────────────────────────────────────────────────
-
-function PersonField({
-  label,
-  raw,
-  emailAll = false,
-}: {
-  label: string;
-  raw: string;
-  emailAll?: boolean;
-}) {
+function PersonField({ label, raw, emailAll = false }: { label: string; raw: string; emailAll?: boolean }) {
   if (raw === '—') return null;
   const people = parsePeople(raw);
   if (people.length === 0) return null;
 
-  const emailAddresses = people.map(p => p.email).filter(Boolean) as string[];
-  const mailtoHref = emailAddresses.length > 0
-    ? `mailto:${emailAddresses.join(',')}`
-    : null;
+  const emails = people.map(p => p.email).filter(Boolean) as string[];
+  const mailtoHref = emails.length > 0 ? `mailto:${emails.join(',')}` : null;
 
   return (
-    <div style={{ marginBottom: 10 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
-        <span style={labelStyle}>{label}</span>
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+        <span style={LABEL_STYLE}>{label}</span>
         {emailAll && mailtoHref && (
           <a
             href={mailtoHref}
-            title={`Compose email to all ${label.toLowerCase()}`}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              color: '#0057b7',
-              opacity: 0.7,
-              lineHeight: 1,
-              textDecoration: 'none',
-            }}
+            title={`Email all ${label.toLowerCase()}`}
+            style={{ display: 'inline-flex', alignItems: 'center', color: '#5b3eab', opacity: 0.65, textDecoration: 'none', lineHeight: 1, transition: 'opacity 0.12s' }}
             onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
-            onMouseLeave={e => (e.currentTarget.style.opacity = '0.7')}
+            onMouseLeave={e => (e.currentTarget.style.opacity = '0.65')}
           >
             <EnvelopeIcon />
           </a>
         )}
       </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 6px', fontSize: 14, lineHeight: 1.6 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 4px', fontSize: 14, lineHeight: 1.6, color: '#1a1a2e' }}>
         {people.map((p, i) => (
           <span key={i} style={{ display: 'inline-flex', alignItems: 'center' }}>
             <PersonChip person={p} />
-            {i < people.length - 1 && (
-              <span style={{ color: '#bbb', marginLeft: 2 }}>,</span>
-            )}
+            {i < people.length - 1 && <span style={{ color: '#ccc', marginLeft: 2 }}>,</span>}
           </span>
         ))}
       </div>
@@ -190,107 +173,185 @@ function PersonField({
   );
 }
 
-// ── Plain text field ─────────────────────────────────────────────────────────
+// ── Plain field ───────────────────────────────────────────────────────────────
 
 function Field({ label, value }: { label: string; value: string }) {
   if (value === '—') return null;
   return (
-    <div style={{ marginBottom: 10 }}>
-      <div style={labelStyle}>{label}</div>
-      <div style={{ fontSize: 14, color: '#222', lineHeight: 1.4 }}>{value}</div>
+    <div style={{ marginBottom: 14 }}>
+      <div style={LABEL_STYLE}>{label}</div>
+      <div style={{ fontSize: 14, color: '#1a1a2e', lineHeight: 1.5, marginTop: 3 }}>{value}</div>
     </div>
   );
 }
 
-const labelStyle: React.CSSProperties = {
-  fontSize: 11,
+// ── Divider ───────────────────────────────────────────────────────────────────
+
+function Divider() {
+  return <div style={{ height: 1, background: 'rgba(0,0,0,0.07)', margin: '4px 0 16px' }} />;
+}
+
+const LABEL_STYLE: React.CSSProperties = {
+  fontSize: 10.5,
   fontWeight: 700,
-  color: '#888',
+  color: '#9990b0',
   textTransform: 'uppercase',
-  letterSpacing: '0.05em',
+  letterSpacing: '0.07em',
 };
 
-// ── Panel ────────────────────────────────────────────────────────────────────
+// ── Panel ─────────────────────────────────────────────────────────────────────
 
 export function DetailPanel({ record, onClose }: DetailPanelProps) {
+  ensureStyles();
+
+  const [closing, setClosing] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
   const color = getDepartmentColor(record.primaryAuthorDepartment);
+
+  // Reset closing state when record changes
+  useEffect(() => { setClosing(false); }, [record]);
+
+  function handleClose() {
+    setClosing(true);
+  }
+
+  function handleAnimationEnd() {
+    if (closing) onClose();
+  }
+
+  // Badge: slightly darkened version of the dept hue for text legibility
+  const badgeBg = color.bg;
+  const badgeText = color.text;
+
+  const BADGE_STYLE: React.CSSProperties = {
+    display: 'inline-block',
+    padding: '3px 9px',
+    borderRadius: 20,
+    fontSize: 11,
+    fontWeight: 600,
+    letterSpacing: '0.02em',
+    lineHeight: 1.4,
+  };
 
   return (
     <div
+      ref={panelRef}
       role="complementary"
       aria-label="Project details"
+      className={closing ? 'dp-exit' : 'dp-enter'}
+      onAnimationEnd={handleAnimationEnd}
       style={{
         position: 'relative',
-        zIndex: 1,
-        width: 340,
-        minWidth: 280,
+        zIndex: 10,
+        width: 360,
+        minWidth: 300,
         flexShrink: 0,
         display: 'flex',
         flexDirection: 'column',
-        borderLeft: '1px solid #d0d0d8',
-        background: '#fafafa',
-        height: '100%',
+        borderLeft: '1px solid rgba(75,46,131,0.18)',
+        borderRadius: '12px 0 0 12px',
+        background: 'linear-gradient(160deg, #ede9f8 0%, #e0daf0 60%, #d8d2ec 100%)',
+        boxShadow: '-6px 0 32px rgba(45,26,94,0.13)',
+        marginTop: 8,
+        height: 'calc(100% - 8px)',
         overflow: 'hidden',
+        willChange: 'transform',
       }}
     >
-      {/* Header */}
+      {/* ── Header ── */}
       <div style={{
-        padding: '12px 16px',
-        background: color.bg,
-        borderBottom: '1px solid rgba(0,0,0,0.1)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        gap: 8,
+        padding: '16px 18px 14px',
+        borderBottom: '1px solid rgba(75,46,131,0.12)',
         flexShrink: 0,
       }}>
-        <div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: color.text, lineHeight: 1, marginBottom: 4 }}>
-            {record.footer}
-          </div>
-          <div style={{ fontSize: 12, color: color.text, opacity: 0.8 }}>
-            {record.primaryAuthorDepartment}
-          </div>
+        {/* Title row + close */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: record.title !== '—' ? 6 : 0 }}>
+          {record.title !== '—' ? (
+            <div style={{
+              fontSize: 16,
+              fontWeight: 700,
+              color: '#1a1228',
+              lineHeight: 1.35,
+            }}>
+              {record.title}
+            </div>
+          ) : <div />}
+          <button
+            className="dp-close"
+            onClick={handleClose}
+            aria-label="Close detail panel"
+            style={{
+              background: 'none',
+              border: 'none',
+              borderRadius: 6,
+              cursor: 'pointer',
+              width: 28,
+              height: 28,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 18,
+              color: 'rgba(75,46,131,0.5)',
+              flexShrink: 0,
+              lineHeight: 1,
+              marginTop: -2,
+              transition: 'background 0.12s, color 0.12s',
+            }}
+          >
+            ×
+          </button>
         </div>
-        <button
-          onClick={onClose}
-          aria-label="Close detail panel"
-          style={{
-            background: 'rgba(0,0,0,0.15)',
-            border: 'none',
-            borderRadius: 4,
-            cursor: 'pointer',
-            width: 28,
-            height: 28,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 16,
-            color: color.text,
-            flexShrink: 0,
-            lineHeight: 1,
-          }}
-        >
-          ×
-        </button>
+
+        {/* Project type (no label) */}
+        {record.projectType !== '—' && (
+          <div style={{
+            fontSize: 12,
+            fontWeight: 500,
+            color: 'rgba(45,26,94,0.55)',
+            letterSpacing: '0.01em',
+            marginBottom: 10,
+          }}>
+            {record.projectType}
+          </div>
+        )}
+
+        {/* Dept badge + footer ID */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={{ ...BADGE_STYLE, background: badgeBg, color: badgeText }}>
+            {record.primaryAuthorDepartment}
+          </span>
+          <span style={{ ...BADGE_STYLE, background: 'rgba(45,26,94,0.1)', color: '#2d1a5e' }}>
+            {record.footer}
+          </span>
+        </div>
       </div>
 
-      {/* Scrollable body */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
-        <Field label="Title" value={record.title} />
+      {/* ── Scrollable body ── */}
+      <div className="dp-scroll" style={{ flex: 1, overflowY: 'auto', padding: '18px 18px 24px' }}>
         <PersonField label="Primary Author" raw={record.primaryAuthor} />
         <PersonField label="Project Authors" raw={record.projectAuthors} emailAll />
-        <Field label="Classification" value={record.classification} />
         <PersonField label="Faculty Advisor" raw={record.facultyAdvisor} />
-        <Field label="Project Type" value={record.projectType} />
+
+        <Divider />
+
+        <Field label="Classification" value={record.classification} />
 
         {record.abstract !== '—' && (
-          <div style={{ marginTop: 4 }}>
-            <div style={labelStyle}>Abstract</div>
-            <div style={{ fontSize: 13, color: '#333', lineHeight: 1.65, whiteSpace: 'pre-wrap', marginTop: 3 }}>
-              {record.abstract}
+          <>
+            <Divider />
+            <div>
+              <div style={{ ...LABEL_STYLE, marginBottom: 6 }}>Abstract</div>
+              <div style={{
+                fontSize: 13,
+                color: '#3a3252',
+                lineHeight: 1.7,
+                whiteSpace: 'pre-wrap',
+              }}>
+                {record.abstract}
+              </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </div>

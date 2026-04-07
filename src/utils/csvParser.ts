@@ -96,6 +96,12 @@ export function parseCSV(rawText: string): ProjectRecord[] {
   const iAbstract = idx('Abstract');
   const iPrimaryAuthorDept = idx("Primary Author's Department");
   const iDepartment = idx('Department');
+  const iUnitName = idx('Unit:UnitName');
+  const iPublicationConsent = idx('Publication Consent');
+  const iUseOfAI = idx('Use of AI');
+  const iAIDetails = idx('AI Details');
+  const iIRBNumber = idx('IRB number');
+  const iIACUCNo = idx('IACUC No.');
 
   const records: ProjectRecord[] = [];
 
@@ -125,6 +131,12 @@ export function parseCSV(rawText: string): ProjectRecord[] {
       abstract: fallback(get(iAbstract)),
       primaryAuthorDepartment: primaryAuthorDepartment || '—',
       department: get(iDepartment),
+      unitName: get(iUnitName),
+      publicationConsent: get(iPublicationConsent),
+      useOfAI: get(iUseOfAI),
+      aiDetails: get(iAIDetails),
+      irbNumber: get(iIRBNumber),
+      iacucNo: get(iIACUCNo),
     });
   }
 

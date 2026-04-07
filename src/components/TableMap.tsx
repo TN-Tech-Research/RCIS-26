@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback } from 'react';
-import { ProjectRecord, TooltipState } from '../types';
+import { ProjectRecord, FilterState, TooltipState } from '../types';
 import { getDepartmentColor } from '../utils/colorMap';
 import { formatPeopleForTooltip, parsePeople } from '../utils/nameParser';
 import {
@@ -20,8 +20,9 @@ import {
 interface TableMapProps {
   records: ProjectRecord[];
   selectedRecord: ProjectRecord | null;
-  highlightedDept: string | null;
+  filters: FilterState;
   authorFilter: string;
+  advisorFilter: string;
   onSelect: (record: ProjectRecord) => void;
 }
 
@@ -34,15 +35,26 @@ function recordMatchesAuthor(record: ProjectRecord, filter: string): boolean {
   return people.some(p => p.displayName.toLowerCase() === f);
 }
 
-const FOCUS_RING = '#0057b7';
-const SELECTED_STROKE = '#111';
+function recordMatchesAdvisor(record: ProjectRecord, filter: string): boolean {
+  return record.facultyAdvisor.toLowerCase() === filter.toLowerCase();
+}
+
+const FOCUS_RING = '#d4920c';
+const SELECTED_COLOR = '#d4920c';
 
 function truncate(text: string, maxLen: number): string {
   if (text.length <= maxLen) return text;
   return text.slice(0, maxLen - 1) + '…';
 }
 
-export function TableMap({ records, selectedRecord, highlightedDept, authorFilter, onSelect }: TableMapProps) {
+export function TableMap({
+  records,
+  selectedRecord,
+  filters,
+  authorFilter,
+  advisorFilter,
+  onSelect,
+}: TableMapProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
 
@@ -81,7 +93,6 @@ export function TableMap({ records, selectedRecord, highlightedDept, authorFilte
 
   return (
     <div style={{ position: 'relative' }}>
-      {/* Direction indicators */}
       <svg
         ref={svgRef}
         width={SVG_W}
@@ -91,36 +102,27 @@ export function TableMap({ records, selectedRecord, highlightedDept, authorFilte
         role="img"
         style={{ display: 'block', userSelect: 'none' }}
       >
-        {/* Row direction arrows (subtle) */}
+        {/* Row direction arrows */}
         {Array.from({ length: rows }, (_, rowIdx) => {
           const isLTR = rowIdx % 2 === 0;
           const y = yPositions[rowIdx] + BLOCK_H / 2;
           const arrowColor = '#bbb';
           const arrowSize = 8;
+          const x = PADDING + HALF_W + CENTER_GAP / 2;
 
-          if (isLTR) {
-            const x = PADDING + HALF_W + CENTER_GAP / 2;
-            return (
-              <g key={`arrow-${rowIdx}`} aria-hidden="true">
-                <line x1={x - 8} y1={y} x2={x + 8} y2={y} stroke={arrowColor} strokeWidth={1.5} />
-                <polygon
-                  points={`${x + arrowSize},${y} ${x + arrowSize - 5},${y - 3} ${x + arrowSize - 5},${y + 3}`}
-                  fill={arrowColor}
-                />
-              </g>
-            );
-          } else {
-            const x = PADDING + HALF_W + CENTER_GAP / 2;
-            return (
-              <g key={`arrow-${rowIdx}`} aria-hidden="true">
-                <line x1={x - 8} y1={y} x2={x + 8} y2={y} stroke={arrowColor} strokeWidth={1.5} />
-                <polygon
-                  points={`${x - arrowSize},${y} ${x - arrowSize + 5},${y - 3} ${x - arrowSize + 5},${y + 3}`}
-                  fill={arrowColor}
-                />
-              </g>
-            );
-          }
+          return (
+            <g key={`arrow-${rowIdx}`} aria-hidden="true">
+              <line x1={x - 8} y1={y} x2={x + 8} y2={y} stroke={arrowColor} strokeWidth={1.5} />
+              <polygon
+                points={
+                  isLTR
+                    ? `${x + arrowSize},${y} ${x + arrowSize - 5},${y - 3} ${x + arrowSize - 5},${y + 3}`
+                    : `${x - arrowSize},${y} ${x - arrowSize + 5},${y - 3} ${x - arrowSize + 5},${y + 3}`
+                }
+                fill={arrowColor}
+              />
+            </g>
+          );
         })}
 
         {/* Blocks */}
@@ -130,10 +132,32 @@ export function TableMap({ records, selectedRecord, highlightedDept, authorFilte
           const x = blockX(side, col);
           const y = blockY(row, yPositions);
           const isSelected = selectedRecord?.footer === record.footer;
+
           const isDimmed =
-            (highlightedDept !== null && record.primaryAuthorDepartment !== highlightedDept) ||
-            (authorFilter.trim() !== '' && !recordMatchesAuthor(record, authorFilter));
+            (filters.dept !== null && record.primaryAuthorDepartment !== filters.dept) ||
+            (filters.college !== null && record.unitName !== filters.college) ||
+            (filters.projectType !== null && record.projectType !== filters.projectType) ||
+            (filters.classification !== null && record.classification !== filters.classification) ||
+            (filters.publicationConsent && record.publicationConsent !== 'Yes') ||
+            (filters.useOfAI && record.useOfAI !== 'Yes') ||
+            (filters.humanSubjects && !record.irbNumber) ||
+            (filters.animalSubjects && !record.iacucNo) ||
+            (authorFilter.trim() !== '' && !recordMatchesAuthor(record, authorFilter)) ||
+            (advisorFilter.trim() !== '' && !recordMatchesAdvisor(record, advisorFilter));
+
           const label = truncate(record.footer, 9);
+
+          // Badge lines for IRB / IACUC when those filters are active and record matches
+          const badgeLines: string[] = [];
+          if (filters.humanSubjects && record.irbNumber)
+            badgeLines.push(`IRB ${record.irbNumber.replace(/,/g, '')}`);
+          if (filters.animalSubjects && record.iacucNo)
+            badgeLines.push(`IACUC ${record.iacucNo.replace(/,/g, '')}`);
+
+          // Vertical center shifts up when we have badges (to leave room at bottom)
+          const labelY = badgeLines.length > 0
+            ? y + BLOCK_H / 2 - 5
+            : y + BLOCK_H / 2 + 1;
 
           return (
             <g
@@ -152,66 +176,91 @@ export function TableMap({ records, selectedRecord, highlightedDept, authorFilte
               style={{ cursor: 'pointer', outline: 'none' }}
             >
               <rect
-                x={x}
-                y={y}
-                width={BLOCK_W}
-                height={BLOCK_H}
-                rx={3}
+                x={x} y={y} width={BLOCK_W} height={BLOCK_H} rx={3}
                 fill={color.bg}
-                fillOpacity={isDimmed ? 0.25 : 1}
-                stroke={isSelected ? SELECTED_STROKE : 'rgba(0,0,0,0.25)'}
+                fillOpacity={isDimmed ? 0.22 : 1}
+                stroke={isSelected ? SELECTED_COLOR : 'rgba(0,0,0,0.25)'}
                 strokeWidth={isSelected ? 2.5 : 1}
+                className={isSelected ? 'selected-block-rect' : undefined}
                 style={{ transition: 'fill-opacity 0.15s' }}
               />
+
               {/* Selected indicator: top bar */}
               {isSelected && (
                 <rect
-                  x={x + 1}
-                  y={y + 1}
-                  width={BLOCK_W - 2}
-                  height={4}
-                  rx={2}
-                  fill={SELECTED_STROKE}
+                  x={x + 1} y={y + 1} width={BLOCK_W - 2} height={4} rx={2}
+                  fill={SELECTED_COLOR}
+                  className="selected-block-bar"
                 />
               )}
-              {/* Focus ring via filter trick — drawn as overlay rect */}
+
+              {/* Focus ring */}
               <rect
-                x={x - 2}
-                y={y - 2}
-                width={BLOCK_W + 4}
-                height={BLOCK_H + 4}
-                rx={5}
-                fill="none"
-                stroke={FOCUS_RING}
-                strokeWidth={2.5}
+                x={x - 2} y={y - 2} width={BLOCK_W + 4} height={BLOCK_H + 4} rx={5}
+                fill="none" stroke={FOCUS_RING} strokeWidth={2.5}
                 style={{ visibility: 'hidden' }}
                 className="focus-ring"
               />
+
+              {/* Footer label */}
               <text
                 x={x + BLOCK_W / 2}
-                y={y + BLOCK_H / 2 + 1}
+                y={labelY}
                 textAnchor="middle"
                 dominantBaseline="middle"
                 fontSize={11}
                 fontWeight={isSelected ? 700 : 600}
                 fontFamily="system-ui, sans-serif"
                 fill={color.text}
-                fillOpacity={isDimmed ? 0.35 : 1}
+                fillOpacity={isDimmed ? 0.3 : 1}
                 style={{ pointerEvents: 'none' }}
               >
                 {label}
               </text>
+
+              {/* IRB / IACUC badge lines */}
+              {badgeLines.map((line, i) => (
+                <text
+                  key={line}
+                  x={x + BLOCK_W / 2}
+                  y={y + BLOCK_H - 4 - (badgeLines.length - 1 - i) * 10}
+                  textAnchor="middle"
+                  dominantBaseline="auto"
+                  fontSize={8}
+                  fontFamily="system-ui, monospace"
+                  fill={color.text}
+                  fillOpacity={isDimmed ? 0.2 : 0.82}
+                  style={{ pointerEvents: 'none' }}
+                >
+                  {line}
+                </text>
+              ))}
             </g>
           );
         })}
       </svg>
 
-      {/* Tooltip */}
       {tooltip && (
-        <Tooltip state={tooltip} />
+        <Tooltip state={tooltip} showAIDetails={filters.useOfAI} />
       )}
 
       <style>{`
+        svg g[role="button"] { outline: none; }
+        @keyframes selectedGlow {
+          0%, 100% { filter: drop-shadow(0 0 3px rgba(212,146,12,0.55)); }
+          50%       { filter: drop-shadow(0 0 8px rgba(212,146,12,1)); }
+        }
+        .selected-block-rect {
+          animation: selectedGlow 1.8s ease-in-out infinite;
+        }
+        @keyframes barShimmer {
+          0%   { opacity: 0.7; }
+          50%  { opacity: 1;   }
+          100% { opacity: 0.7; }
+        }
+        .selected-block-bar {
+          animation: barShimmer 1.8s ease-in-out infinite;
+        }
         svg g[role="button"]:focus .focus-ring {
           visibility: visible !important;
         }
@@ -223,15 +272,24 @@ export function TableMap({ records, selectedRecord, highlightedDept, authorFilte
   );
 }
 
-function Tooltip({ state }: { state: TooltipState }) {
+function Tooltip({
+  state,
+  showAIDetails,
+}: {
+  state: TooltipState;
+  showAIDetails: boolean;
+}) {
   const { x, y, record } = state;
   const title = record.title !== '—' ? record.title : record.footer;
-  const authors = record.projectAuthors !== '—' ? formatPeopleForTooltip(record.projectAuthors) : '';
+  const authors = record.projectAuthors !== '—'
+    ? formatPeopleForTooltip(record.projectAuthors)
+    : '';
+  const hasAIDetails = showAIDetails && record.useOfAI === 'Yes' && record.aiDetails;
 
   const viewportW = window.innerWidth;
   const viewportH = window.innerHeight;
-  const estW = 280;
-  const estH = 70;
+  const estW = 300;
+  const estH = hasAIDetails ? 100 : 70;
 
   let left = x + 12;
   let top = y + 12;
@@ -243,27 +301,39 @@ function Tooltip({ state }: { state: TooltipState }) {
       aria-hidden="true"
       style={{
         position: 'fixed',
-        left,
-        top,
+        left, top,
         width: estW,
-        background: 'rgba(20,20,30,0.92)',
-        color: '#f0f0f5',
-        borderRadius: 6,
-        padding: '8px 12px',
+        background: 'rgba(52,20,98,0.95)',
+        color: '#f0eef8',
+        borderRadius: 8,
+        padding: '9px 13px',
         fontSize: 12,
-        lineHeight: 1.5,
+        lineHeight: 1.55,
         pointerEvents: 'none',
         zIndex: 1000,
-        boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-        backdropFilter: 'blur(4px)',
+        boxShadow: '0 6px 24px rgba(0,0,0,0.35)',
+        backdropFilter: 'blur(6px)',
       }}
     >
-      <div style={{ fontWeight: 700, marginBottom: authors ? 4 : 0 }}>
+      <div style={{ fontWeight: 700, marginBottom: authors || hasAIDetails ? 4 : 0 }}>
         {truncate(title, 80)}
       </div>
       {authors && (
-        <div style={{ opacity: 0.8, fontSize: 11 }}>
+        <div style={{ opacity: 0.75, fontSize: 11 }}>
           {truncate(authors, 80)}
+        </div>
+      )}
+      {hasAIDetails && (
+        <div style={{
+          marginTop: 6,
+          paddingTop: 6,
+          borderTop: '1px solid rgba(255,255,255,0.12)',
+          opacity: 0.85,
+          fontSize: 11,
+          fontStyle: 'italic',
+          color: '#f5c842',
+        }}>
+          AI: {truncate(record.aiDetails, 120)}
         </div>
       )}
     </div>
