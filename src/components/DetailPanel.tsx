@@ -220,6 +220,8 @@ export function DetailPanel({ record, onClose }: DetailPanelProps) {
       role="complementary"
       aria-label="Project details"
       style={{
+        position: 'relative',
+        zIndex: 1,
         width: 340,
         minWidth: 280,
         flexShrink: 0,
