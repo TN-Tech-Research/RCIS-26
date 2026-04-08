@@ -3,3 +3,5 @@ Table_numbers.csv
 node_modules/
 dist/
 push-csv.sh
+.claude/
+claude.md
