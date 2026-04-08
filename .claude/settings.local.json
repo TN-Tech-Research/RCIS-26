@@ -16,7 +16,12 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(curl -s http://localhost:5173)",
-      "Bash(npm info:*)"
+      "Bash(npm info:*)",
+      "Read(//home/bates/Documents/RCIS26/Table_map1/**)",
+      "Bash(pip3 install:*)",
+      "Read(//tmp/**)",
+      "Bash(docx_env/bin/pip install:*)",
+      "Bash(docx_env/bin/python3 -c ':*)"
     ]
   }
 }

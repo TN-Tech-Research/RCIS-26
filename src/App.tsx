@@ -7,6 +7,7 @@ import { TableMap } from './components/TableMap';
 import { DetailPanel } from './components/DetailPanel';
 import { FilterMenu } from './components/FilterMenu';
 import { AdminTools } from './components/AdminTools';
+import { TutorialModal } from './components/TutorialModal';
 import MobileView from './components/MobileView';
 import { useMobile } from './hooks/useMobile';
 import { ParticleBackground } from './components/ParticleBackground';
@@ -40,6 +41,7 @@ export default function App() {
   const [advisorFilter, setAdvisorFilter] = useState('');
 
   const [isAdmin, setIsAdmin] = useState(false);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
   const seqPos = useRef(0);
   const listening = useRef(false);
   const seqTimeout = useRef<ReturnType<typeof setTimeout>>();
@@ -163,6 +165,7 @@ export default function App() {
           .filter-toggle-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.5); outline-offset: 2px; }
           .admin-btn:hover { background: rgba(255,215,100,0.22) !important; }
           .logo-btn { background: none; border: none; padding: 0; cursor: default; display: flex; align-items: center; }
+          #tutorial-btn:hover { background: rgba(255,255,255,0.2) !important; border-color: rgba(255,255,255,0.5) !important; color: rgba(255,255,255,0.95) !important; }
         `}</style>
 
         {/* ── Header ──────────────────────────────────────────────────────────── */}
@@ -180,6 +183,7 @@ export default function App() {
           flexShrink: 0,
         }}>
           <button
+            id="header-logo-btn"
             className="logo-btn"
             onClick={handleLogoClick}
             tabIndex={-1}
@@ -221,6 +225,7 @@ export default function App() {
 
             {/* Filters button */}
             <button
+              id="filter-toggle-btn"
               className="filter-toggle-btn"
               onClick={() => { setFiltersOpen(o => !o); setAdminOpen(false); }}
               aria-expanded={filtersOpen}
@@ -269,6 +274,7 @@ export default function App() {
             {/* Admin tools button — only visible in admin mode */}
             {isAdmin && (
               <button
+                id="admin-btn"
                 className="admin-btn"
                 onClick={() => { setAdminOpen(o => !o); setFiltersOpen(false); }}
                 aria-expanded={adminOpen}
@@ -301,15 +307,41 @@ export default function App() {
               </button>
             )}
 
-            <span style={{
-              fontSize: 12,
-              color: 'rgba(255,255,255,0.42)',
-              whiteSpace: 'nowrap',
-              paddingLeft: 4,
-              letterSpacing: '0.01em',
+            <div style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              gap: 3, paddingLeft: 4, flexShrink: 0,
             }}>
-              {records.length} projects
-            </span>
+              <span style={{
+                fontSize: 12,
+                color: 'rgba(255,255,255,0.42)',
+                whiteSpace: 'nowrap',
+                letterSpacing: '0.01em',
+              }}>
+                {records.length} projects
+              </span>
+              <button
+                id="tutorial-btn"
+                onClick={() => setTutorialOpen(true)}
+                aria-label="Open feature guide"
+                style={{
+                  width: 16, height: 16,
+                  borderRadius: '50%',
+                  border: '1px solid rgba(255,255,255,0.28)',
+                  background: 'rgba(255,255,255,0.09)',
+                  color: 'rgba(255,255,255,0.55)',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: 0,
+                  fontFamily: 'inherit',
+                  lineHeight: 1,
+                  transition: 'background 0.15s, border-color 0.15s, color 0.15s',
+                }}
+              >
+                ?
+              </button>
+            </div>
           </div>
         </header>
 
@@ -362,7 +394,7 @@ export default function App() {
         )}
 
         {/* ── Main content ─────────────────────────────────────────────────────── */}
-        <div style={{ position: 'relative', flex: 1, overflow: 'hidden' }}>
+        <div id="table-map-root" style={{ position: 'relative', flex: 1, overflow: 'hidden' }}>
           <ParticleBackground />
           <div style={{ position: 'absolute', inset: 0, padding: 12, boxSizing: 'border-box' }}>
             {records.length === 0 ? (
@@ -386,6 +418,8 @@ export default function App() {
           )}
         </div>
       </div>
+
+      <TutorialModal isOpen={tutorialOpen} onClose={() => setTutorialOpen(false)} />
     </AdminContext.Provider>
   );
 }
