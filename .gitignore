@@ -1,3 +1,5 @@
+Table_numbers.csv
+.env
 node_modules/
 dist/
 push-csv.sh

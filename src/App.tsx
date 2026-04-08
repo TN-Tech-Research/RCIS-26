@@ -9,7 +9,7 @@ import { FilterMenu } from './components/FilterMenu';
 import MobileView from './components/MobileView';
 import { useMobile } from './hooks/useMobile';
 import { ParticleBackground } from './components/ParticleBackground';
-import rawCsv from '../Table_numbers.csv?raw';
+import rawCsv from '../Table_numbers.enc?raw';
 import rcisLogo from '../RCIS.png';
 
 const records: ProjectRecord[] = parseCSV(rawCsv);
