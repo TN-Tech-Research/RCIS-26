@@ -522,8 +522,8 @@ function AdvisorTooltip({
   // Clamp so tooltip stays within viewport vertically
   const tooltipH = Math.min(projects.length * 22 + 44, 280);
   const top = Math.min(Math.max(anchorY - tooltipH / 2, 8), window.innerHeight - tooltipH - 8);
-  // Right edge of tooltip sits 5px left of the admin tools panel
-  const left = Math.max(anchorX - 5 - tooltipW, 4);
+  // Right edge of tooltip + its shadow clears the admin tools panel left edge
+  const left = Math.max(anchorX - 20 - tooltipW, 4);
 
   return (
     <div style={{
