@@ -53,7 +53,7 @@ function MobileListItem({ record, isExpanded, onToggle }: ListItemProps) {
           }}
         />
         <span style={{
-          fontFamily: 'Nohemi',
+          fontFamily: 'monospace',
           fontWeight: 700,
           fontSize: 12,
           flexShrink: 0,
@@ -184,7 +184,7 @@ export default function MobileView({ records, logoSrc }: MobileViewProps) {
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',
-      fontFamily: 'Nohemi',
+      fontFamily: "'Nohemi', system-ui, -apple-system, sans-serif",
       background: '#fff',
     }}>
       <style>{`

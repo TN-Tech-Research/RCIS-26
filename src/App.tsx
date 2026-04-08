@@ -228,7 +228,7 @@ export default function App() {
     <AdminContext.Provider value={isAdmin}>
       <div style={{
         display: 'flex', flexDirection: 'column', height: '100vh',
-        fontFamily: 'Nohemi',
+        fontFamily: "'Nohemi', system-ui, -apple-system, sans-serif",
         background: 'transparent',
       }}>
         <style>{`
