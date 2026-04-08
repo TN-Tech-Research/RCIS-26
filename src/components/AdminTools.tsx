@@ -8,6 +8,7 @@ interface AdminToolsProps {
   allRecords: ProjectRecord[];
   hasActiveFilters: boolean;
   onExit: () => void;
+  onClose: () => void;
 }
 
 function collectEmails(records: ProjectRecord[]): string[] {
@@ -42,7 +43,7 @@ interface TooltipInfo {
   anchorX: number;
 }
 
-export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onExit }: AdminToolsProps) {
+export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onExit, onClose }: AdminToolsProps) {
   const [copied, setCopied] = useState(false);
   const [advisorTooltip, setAdvisorTooltip] = useState<TooltipInfo | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -166,25 +167,50 @@ export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onEx
             {viewLabel}
           </span>
         </div>
-        <button
-          onClick={onExit}
-          style={{
-            background: 'rgba(255,255,255,0.12)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: 6,
-            color: 'rgba(255,255,255,0.8)',
-            fontSize: 11.5,
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-            padding: '4px 12px',
-            fontWeight: 500,
-            transition: 'background 0.12s',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.22)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
-        >
-          Exit Admin Mode
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button
+            onClick={onExit}
+            style={{
+              background: 'rgba(255,255,255,0.12)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: 6,
+              color: 'rgba(255,255,255,0.8)',
+              fontSize: 11.5,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              padding: '4px 12px',
+              fontWeight: 500,
+              transition: 'background 0.12s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.22)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
+          >
+            Exit Admin Mode
+          </button>
+          <button
+            onClick={onClose}
+            aria-label="Close admin panel"
+            style={{
+              background: 'none',
+              border: 'none',
+              borderRadius: 6,
+              cursor: 'pointer',
+              width: 28,
+              height: 28,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 18,
+              color: 'rgba(255,255,255,0.5)',
+              lineHeight: 1,
+              transition: 'background 0.12s, color 0.12s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; }}
+          >
+            ×
+          </button>
+        </div>
       </div>
 
       {/* ── Faculty Advisor Load Report ──────────────────────────────────────── */}

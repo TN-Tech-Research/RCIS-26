@@ -330,6 +330,7 @@ export default function App() {
                   onChange={setFilters}
                   deptStats={deptStats}
                   records={records}
+                  onClose={() => setFiltersOpen(false)}
                 />
               </div>
             </div>
@@ -353,6 +354,7 @@ export default function App() {
                   allRecords={records}
                   hasActiveFilters={hasActiveFilters || !!authorFilter || !!advisorFilter}
                   onExit={() => { setIsAdmin(false); setAdminOpen(false); }}
+                  onClose={() => setAdminOpen(false)}
                 />
               </div>
             </div>

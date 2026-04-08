@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { ProjectRecord } from '../types';
 import { getDepartmentColor } from '../utils/colorMap';
 import { parsePeople, Person } from '../utils/nameParser';
@@ -73,9 +74,9 @@ function PersonChip({ person }: { person: Person }) {
 
   function openPopup(e: React.MouseEvent) {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const estimatedH = 110;
-    const y = rect.bottom + 4 + estimatedH > window.innerHeight
-      ? rect.top - estimatedH - 4
+    const menuH = 96;
+    const y = rect.bottom + 4 + menuH > window.innerHeight
+      ? rect.top - menuH - 4
       : rect.bottom + 4;
     setPopup({ x: rect.left, y });
   }
@@ -85,53 +86,50 @@ function PersonChip({ person }: { person: Person }) {
     setPopup(null);
   }
 
+  const menu = popup && createPortal(
+    <>
+      <div
+        style={{ position: 'fixed', inset: 0, zIndex: 9000 }}
+        onClick={() => setPopup(null)}
+      />
+      <div style={{
+        position: 'fixed', left: popup.x, top: popup.y, zIndex: 9001,
+        background: '#fff', border: '1px solid rgba(0,0,0,0.1)',
+        borderRadius: 10, boxShadow: '0 8px 32px rgba(0,0,0,0.16)',
+        padding: '6px', minWidth: 180,
+      }}>
+        <button
+          className="dp-popup-btn"
+          onClick={copyEmail}
+          style={{ background: 'none', color: '#1a1a2e', border: 'none',
+            textAlign: 'left', borderRadius: 6, marginBottom: 2 }}
+          onMouseEnter={e => (e.currentTarget.style.background = '#f0eeff')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+        >
+          Copy
+        </button>
+        <a
+          href={`mailto:${person.email}`}
+          onClick={() => setPopup(null)}
+          className="dp-popup-btn"
+          style={{ background: 'none', color: '#1a1a2e', border: 'none',
+            textDecoration: 'none', display: 'block', borderRadius: 6 }}
+          onMouseEnter={e => (e.currentTarget.style.background = '#f0eeff')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+        >
+          Compose Message
+        </a>
+      </div>
+    </>,
+    document.body
+  );
+
   return (
     <>
       <button className="dp-chip" onClick={openPopup} title={`Email: ${person.email}`}>
         {person.displayName}
       </button>
-
-      {popup && (
-        <>
-          <div
-            style={{ position: 'fixed', inset: 0, zIndex: 900 }}
-            onClick={() => setPopup(null)}
-          />
-          <div style={{
-            position: 'fixed', left: popup.x, top: popup.y, zIndex: 901,
-            background: '#fff', border: '1px solid rgba(0,0,0,0.1)',
-            borderRadius: 10, boxShadow: '0 8px 32px rgba(0,0,0,0.16)',
-            padding: '12px 14px', minWidth: 224,
-          }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#111', marginBottom: 4 }}>
-              {person.displayName}
-            </div>
-            <div style={{ fontSize: 11, color: '#888', marginBottom: 10, fontFamily: 'monospace' }}>
-              {person.email}
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <button
-                className="dp-popup-btn"
-                onClick={copyEmail}
-                style={{ background: '#f0eeff', color: '#4b2e83' }}
-              >
-                Copy email address
-              </button>
-              <a
-                href={`mailto:${person.email}`}
-                onClick={() => setPopup(null)}
-                className="dp-popup-btn"
-                style={{
-                  background: '#f5f5f7', color: '#333',
-                  textDecoration: 'none', textAlign: 'center',
-                }}
-              >
-                Compose email
-              </a>
-            </div>
-          </div>
-        </>
-      )}
+      {menu}
     </>
   );
 }

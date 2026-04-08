@@ -9,9 +9,10 @@ interface FilterMenuProps {
   onChange: (f: FilterState) => void;
   deptStats: DeptStat[];
   records: ProjectRecord[];
+  onClose: () => void;
 }
 
-export function FilterMenu({ filters, onChange, deptStats, records }: FilterMenuProps) {
+export function FilterMenu({ filters, onChange, deptStats, records, onClose }: FilterMenuProps) {
   const [activeTab, setActiveTab] = useState<FilterTab>('dept');
 
   const hasActive = Object.values(filters).some(v => v !== null && v !== false);
@@ -71,26 +72,50 @@ export function FilterMenu({ filters, onChange, deptStats, records }: FilterMenu
           );
         })}
 
-        {hasActive && (
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+          {hasActive && (
+            <button
+              onClick={() => onChange(DEFAULT_FILTERS)}
+              style={{
+                alignSelf: 'center',
+                padding: '5px 12px',
+                background: 'none',
+                border: '1px solid #e0daea',
+                borderRadius: 6,
+                color: '#999',
+                fontSize: 12,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'border-color 0.15s, color 0.15s',
+              }}
+            >
+              Clear all
+            </button>
+          )}
           <button
-            onClick={() => onChange(DEFAULT_FILTERS)}
+            onClick={onClose}
+            aria-label="Close filters"
             style={{
-              marginLeft: 'auto',
-              alignSelf: 'center',
-              padding: '5px 12px',
               background: 'none',
-              border: '1px solid #e0daea',
+              border: 'none',
               borderRadius: 6,
-              color: '#999',
-              fontSize: 12,
               cursor: 'pointer',
-              fontFamily: 'inherit',
-              transition: 'border-color 0.15s, color 0.15s',
+              width: 28,
+              height: 28,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 18,
+              color: 'rgba(0,0,0,0.3)',
+              lineHeight: 1,
+              transition: 'background 0.12s, color 0.12s',
             }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.07)'; e.currentTarget.style.color = '#111'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(0,0,0,0.3)'; }}
           >
-            Clear all
+            ×
           </button>
-        )}
+        </div>
       </div>
 
       {/* Tab content */}
