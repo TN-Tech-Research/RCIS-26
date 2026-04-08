@@ -545,6 +545,17 @@ function AdvisorTooltip({
           width: 7, height: 7, borderRadius: '50%',
           background: '#4b2e83', flexShrink: 0,
         }} />
+        <span style={{
+          fontSize: 11,
+          fontWeight: 700,
+          color: '#4b2e83',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          flex: 1,
+        }}>
+          {name}
+        </span>
         <div style={{
           marginLeft: 'auto',
           fontSize: 10.5,
