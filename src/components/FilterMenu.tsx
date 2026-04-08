@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { FilterState, DEFAULT_FILTERS, ProjectRecord } from '../types';
 import { DeptStat, CollegeInfo, COLLEGES } from '../utils/colorMap';
 
-type FilterTab = 'dept' | 'college' | 'project';
+export type FilterTab = 'dept' | 'college' | 'project';
 
 interface FilterMenuProps {
   filters: FilterState;
@@ -10,10 +10,11 @@ interface FilterMenuProps {
   deptStats: DeptStat[];
   records: ProjectRecord[];
   onClose: () => void;
+  activeTab: FilterTab;
+  onTabChange: (tab: FilterTab) => void;
 }
 
-export function FilterMenu({ filters, onChange, deptStats, records, onClose }: FilterMenuProps) {
-  const [activeTab, setActiveTab] = useState<FilterTab>('dept');
+export function FilterMenu({ filters, onChange, deptStats, records, onClose, activeTab, onTabChange }: FilterMenuProps) {
 
   const hasActive = Object.values(filters).some(v => v !== null && v !== false);
 
@@ -50,7 +51,8 @@ export function FilterMenu({ filters, onChange, deptStats, records, onClose }: F
           return (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              id={`filter-tab-${tab}`}
+              onClick={() => onTabChange(tab)}
               style={{
                 padding: '11px 20px 10px',
                 background: 'none',
@@ -156,7 +158,7 @@ function DeptTab({
   }, [deptStats]);
 
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 24px', alignItems: 'flex-start' }}>
+    <div id="filter-dept-content" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 24px', alignItems: 'flex-start' }}>
       {COLLEGES.map((college: CollegeInfo) => {
         const depts = byCollege.get(college.prefix);
         if (!depts || depts.length === 0) return null;
@@ -305,7 +307,7 @@ function ProjectTab({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Project Type */}
-      <FilterSection label="Project Type">
+      <FilterSection id="filter-project-type-section" label="Project Type">
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
           {projectTypeCounts.map(([type, count]) => (
             <SelectChip
@@ -341,7 +343,7 @@ function ProjectTab({
       </FilterSection>
 
       {/* Highlight toggles */}
-      <FilterSection label="Highlights">
+      <FilterSection id="filter-highlights-section" label="Highlights">
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           <ToggleChip
             label="Publication Consent"
@@ -383,9 +385,9 @@ function ProjectTab({
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
 
-function FilterSection({ label, children }: { label: string; children: React.ReactNode }) {
+function FilterSection({ label, children, id }: { label: string; children: React.ReactNode; id?: string }) {
   return (
-    <div>
+    <div id={id}>
       <div style={{
         fontSize: 10.5,
         fontWeight: 700,

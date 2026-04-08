@@ -5,103 +5,120 @@ import { useAdmin } from '../contexts/AdminContext';
 const PAD = 10;
 
 interface TutorialStep {
+  key: string;
   section: string;
   title: string;
   desc: string;
   targetId?: string;
+  targetSelector?: string;
+  targetDelay?: number;
   adminOnly?: boolean;
 }
 
 const ALL_STEPS: TutorialStep[] = [
   // ── Navigating ──────────────────────────────────────────────────────────────
   {
+    key: 'color-blocks',
     section: 'Navigating the table map',
     title: 'Color-coded blocks',
-    desc: 'Each block represents one project. Color indicates the primary author\'s department, grouped by college (AHE, ASC, ENG, etc.). The legend at the bottom of the map shows each department\'s color.',
-    targetId: 'table-map-root',
+    desc: 'Each block represents one project. Color indicates the primary author\'s department, grouped by college. The legend at the bottom of the map shows every department\'s color.',
+    targetId: 'tutorial-target-block',
   },
   {
-    section: 'Navigating the table map',
-    title: 'Click to open details',
-    desc: 'Click any block to open a side panel with full project info — title, authors, advisor, classification, and abstract. Click the same block again or press × to close.',
-    targetId: 'table-map-root',
-  },
-  {
+    key: 'hover-tooltip',
     section: 'Navigating the table map',
     title: 'Hover tooltip',
-    desc: 'Hovering a block shows the project title and co-author list in a floating tooltip without opening the full detail panel.',
-    targetId: 'table-map-root',
+    desc: 'Hovering over any block shows a floating tooltip with the project title and co-author list — without opening the full detail panel. You can see it above this block right now.',
+    targetId: 'tutorial-target-block',
+    targetDelay: 120,
   },
   {
+    key: 'click-to-open',
     section: 'Navigating the table map',
-    title: 'Keyboard navigation',
-    desc: 'Blocks are focusable via Tab. Press Enter or Space on a focused block to open its detail panel — no mouse required.',
-    targetId: 'table-map-root',
+    title: 'Click to open details',
+    desc: 'Clicking a block opens the detail panel on the right. The selected block gets a gold border and animated top bar. The panel shows the title, authors, advisor, classification, and abstract. Click the block again or press × to close.',
+    targetId: 'detail-panel-root',
+    targetDelay: 420,
   },
   {
+    key: 'table-layout',
     section: 'Navigating the table map',
     title: 'Table layout direction',
-    desc: 'Rows snake left-to-right then right-to-left. Small arrows in the center gap indicate direction for each row pair, mirroring the physical room layout.',
-    targetId: 'table-map-root',
+    desc: 'Rows snake left-to-right then right-to-left. The small directional arrows in the center gap — highlighted here — indicate the direction for each row, mirroring the physical room layout.',
+    targetId: 'row-arrows',
   },
   // ── Searching ───────────────────────────────────────────────────────────────
   {
+    key: 'author-search',
     section: 'Searching',
     title: 'Search by Author',
-    desc: 'Type a name into the "Search by Author" field. Matching names appear as suggestions — selecting one dims all non-matching projects so you can instantly spot a specific presenter.',
+    desc: 'Type a name into "Search by Author". Matching names appear as suggestions — selecting one dims all non-matching projects so you can instantly spot a specific presenter. A brighter border means a filter is active.',
     targetId: 'author-search',
   },
   {
+    key: 'advisor-search',
     section: 'Searching',
     title: 'Search by Advisor',
-    desc: 'Works the same as author search but filters by faculty advisor name. Both searches can be active simultaneously to narrow results further.',
+    desc: 'Works identically but filters by faculty advisor name. Both searches can be active at the same time — only blocks matching all active criteria remain fully opaque.',
     targetId: 'advisor-search',
   },
   {
+    key: 'clear-search',
     section: 'Searching',
     title: 'Clearing a search',
-    desc: 'Press the × button inside a search field to clear it, or delete the text manually. An active search is indicated by a brighter border on the input.',
+    desc: 'Press the × inside a search field to clear it, or just delete the text. The border returns to its default dim state when no filter is active.',
     targetId: 'author-search',
   },
   // ── Filters ─────────────────────────────────────────────────────────────────
   {
+    key: 'filters-overview',
     section: 'Filters',
     title: 'Filters panel',
-    desc: 'Click Filters to open the filter panel. An orange dot on the button means at least one filter is active. Use "Clear all" inside the panel to reset everything at once.',
+    desc: 'Click Filters to open the filter panel. An orange dot on the button means at least one filter is active. Use Clear all inside the panel to reset all filters at once.',
     targetId: 'filter-toggle-btn',
   },
   {
+    key: 'dept-college',
     section: 'Filters',
-    title: 'Department & College',
-    desc: 'Filter by the primary author\'s department — chips are grouped by college with a colored header label. Or select a whole college to filter all its departments at once.',
-    targetId: 'filter-toggle-btn',
+    title: 'Advisor Department',
+    desc: 'Color-coded department chips grouped by college. Each chip shows the department name and project count. Selecting one dims all blocks not from that department. Click the active chip again to clear it.',
+    targetId: 'filter-dept-content',
+    targetDelay: 180,
   },
   {
+    key: 'project-type',
     section: 'Filters',
-    title: 'Project type & Classification',
-    desc: 'Narrow by project format (poster, oral, etc.) or by the primary author\'s academic level (undergraduate, graduate, etc.).',
-    targetId: 'filter-toggle-btn',
+    title: 'Project Type & Classification',
+    desc: 'On the Project Type tab, filter by project format (Research Project or Literature Based Review) or by the primary author\'s academic level. Only one option per section can be active at a time.',
+    targetId: 'filter-project-type-section',
+    targetDelay: 60,
   },
   {
+    key: 'highlight-toggles',
     section: 'Filters',
     title: 'Highlight toggles',
-    desc: 'Toggle-style flags for Publication Consent, Use of AI, Human Subjects (IRB), and Animal Subjects (IACUC). Non-matching blocks are dimmed rather than hidden, preserving spatial context.',
-    targetId: 'filter-toggle-btn',
+    desc: 'Four toggle filters — Publication Consent, Use of AI, Human Subjects (IRB), and Animal Subjects (IACUC) — dim non-matching blocks rather than hiding them. Multiple toggles can be on at once.',
+    targetId: 'filter-highlights-section',
   },
   {
+    key: 'irb-labels',
     section: 'Filters',
     title: 'IRB / IACUC labels on blocks',
-    desc: 'When the Human or Animal Subjects toggles are active, matching blocks display a small "IRB" or "IACUC" label at the bottom of the block for quick visual reference.',
-    targetId: 'table-map-root',
+    desc: 'When Human or Animal Subjects is active, matching blocks display an IRB or IACUC label at the bottom — like the block highlighted here. This makes it easy to visually scan which projects have ethics approval.',
+    targetSelector: '[data-irb-block]',
+    targetDelay: 200,
   },
   {
+    key: 'ai-tooltip',
     section: 'Filters',
     title: 'AI details in tooltip',
-    desc: 'When the Use of AI toggle is active, hovering a matching block also shows the project\'s AI use description in the tooltip alongside the title and author list.',
-    targetId: 'table-map-root',
+    desc: 'When the Use of AI toggle is on, hovering a matching block also shows that project\'s AI use description in the tooltip. The tooltip on this block includes it right now.',
+    targetSelector: '[data-ai-block]',
+    targetDelay: 200,
   },
   // ── Admin ───────────────────────────────────────────────────────────────────
   {
+    key: 'admin-unlock',
     section: 'Admin mode',
     title: 'Unlocking Admin mode',
     desc: 'Click the RCIS logo to begin listening, then enter the secret key sequence. Once unlocked, an Admin button appears in the header. Use "Exit Admin Mode" inside the panel to lock it again.',
@@ -109,36 +126,41 @@ const ALL_STEPS: TutorialStep[] = [
     adminOnly: true,
   },
   {
+    key: 'admin-load',
     section: 'Admin mode',
     title: 'Faculty advisor load report',
-    desc: 'A horizontal bar chart of all advisors in the current view, sorted by project count. Bar color reflects the advisor\'s majority college. Hover a row to see that advisor\'s project list.',
+    desc: 'A bar chart of all advisors in the current view, sorted by project count. Bar color reflects the advisor\'s majority college. Hover a row to see that advisor\'s full project list.',
     targetId: 'admin-btn',
     adminOnly: true,
   },
   {
+    key: 'admin-email',
     section: 'Admin mode',
     title: 'Mass email tools',
-    desc: 'Collects all unique author emails from the current view. "Copy all emails" puts them on your clipboard semicolon-delimited. For lists of 50 or fewer, "Open in mail client" builds a mailto: link.',
+    desc: 'Collects all unique author emails from the current view. "Copy all emails" puts them on your clipboard semicolon-delimited. For 50 or fewer addresses, "Open in mail client" builds a mailto: link.',
     targetId: 'admin-btn',
     adminOnly: true,
   },
   {
+    key: 'admin-stats',
     section: 'Admin mode',
     title: 'Stats panel',
-    desc: 'Shows flag counts (IRB, IACUC, AI use, publication consent) as percentage pills, a pie chart by project type, and a bar list by classification — all scoped to the current filtered view.',
+    desc: 'Flag counts (IRB, IACUC, AI use, publication consent) as percentage pills, a pie chart by project type, and a classification breakdown — all scoped to the current filtered view.',
     targetId: 'admin-btn',
     adminOnly: true,
   },
   {
+    key: 'admin-chips',
     section: 'Admin mode',
     title: 'Per-author email chips',
-    desc: 'In the detail panel, author and advisor names become clickable chips. Clicking opens a small popup to copy an individual\'s email address or open a compose window directly.',
+    desc: 'In the detail panel, author and advisor names become clickable chips. Clicking opens a popup to copy an individual\'s email or open a compose window directly.',
     adminOnly: true,
   },
   {
+    key: 'admin-irb-numbers',
     section: 'Admin mode',
     title: 'IRB / IACUC numbers on blocks',
-    desc: 'When Human or Animal Subjects toggles are active, blocks show the full IRB or IACUC approval number (not just the label) for quicker cross-reference while reviewing.',
+    desc: 'When Human or Animal Subjects toggles are active, blocks show the full IRB or IACUC approval number rather than just the label — useful for quick cross-reference.',
     targetId: 'table-map-root',
     adminOnly: true,
   },
@@ -147,9 +169,10 @@ const ALL_STEPS: TutorialStep[] = [
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  onStepEnter: (key: string) => void;
 }
 
-export function TutorialModal({ isOpen, onClose }: Props) {
+export function TutorialModal({ isOpen, onClose, onStepEnter }: Props) {
   const isAdmin = useAdmin();
   const [step, setStep] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
@@ -164,15 +187,36 @@ export function TutorialModal({ isOpen, onClose }: Props) {
     if (isOpen) setStep(0);
   }, [isOpen]);
 
-  // Update spotlight target rect whenever step or open state changes
+  // Fire onStepEnter whenever the active step changes
   useEffect(() => {
-    if (!isOpen || !current?.targetId) {
-      setTargetRect(null);
-      return;
+    if (!isOpen || !current) return;
+    onStepEnter(current.key);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, step]);
+
+  // Compute spotlight target rect after optional delay (some steps need the DOM to settle first)
+  useEffect(() => {
+    if (!isOpen || !current) { setTargetRect(null); return; }
+
+    const compute = () => {
+      if (current.targetSelector) {
+        const el = document.querySelector(current.targetSelector);
+        setTargetRect(el ? (el as Element).getBoundingClientRect() : null);
+      } else if (current.targetId) {
+        const el = document.getElementById(current.targetId);
+        setTargetRect(el ? el.getBoundingClientRect() : null);
+      } else {
+        setTargetRect(null);
+      }
+    };
+
+    const delay = current.targetDelay ?? 0;
+    if (delay > 0) {
+      const t = setTimeout(compute, delay);
+      return () => clearTimeout(t);
     }
-    const el = document.getElementById(current.targetId);
-    setTargetRect(el ? el.getBoundingClientRect() : null);
-  }, [isOpen, step, current?.targetId]);
+    compute();
+  }, [isOpen, step, current]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -270,7 +314,7 @@ export function TutorialModal({ isOpen, onClose }: Props) {
           fontFamily: "'Nohemi', system-ui, -apple-system, sans-serif",
         }}
       >
-        {/* Top row: section badge + step dots + close */}
+        {/* Top row: section badge + progress dots + close */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 11 }}>
           <span style={{
             fontSize: 10,
@@ -290,7 +334,7 @@ export function TutorialModal({ isOpen, onClose }: Props) {
           <div style={{ display: 'flex', gap: 4, flex: 1, flexWrap: 'wrap', alignItems: 'center' }}>
             {visibleSteps.map((s, i) => (
               <button
-                key={i}
+                key={s.key}
                 onClick={() => setStep(i)}
                 aria-label={`Go to step ${i + 1}: ${s.title}`}
                 style={{
@@ -350,7 +394,7 @@ export function TutorialModal({ isOpen, onClose }: Props) {
           {current.desc}
         </div>
 
-        {/* Bottom row: step counter + nav */}
+        {/* Bottom row: step counter + navigation */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: 11, color: '#9990b0', letterSpacing: '0.02em' }}>
             {step + 1} / {totalSteps}
@@ -389,7 +433,6 @@ export function TutorialModal({ isOpen, onClose }: Props) {
                   fontSize: 12, fontWeight: 500,
                   fontFamily: 'inherit',
                   letterSpacing: '0.02em',
-                  transition: 'opacity 0.15s',
                 }}
               >
                 Next →

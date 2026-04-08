@@ -5,7 +5,7 @@ import { buildDepartmentStats } from './utils/colorMap';
 import { parsePeople } from './utils/nameParser';
 import { TableMap } from './components/TableMap';
 import { DetailPanel } from './components/DetailPanel';
-import { FilterMenu } from './components/FilterMenu';
+import { FilterMenu, FilterTab } from './components/FilterMenu';
 import { AdminTools } from './components/AdminTools';
 import { TutorialModal } from './components/TutorialModal';
 import MobileView from './components/MobileView';
@@ -42,6 +42,9 @@ export default function App() {
 
   const [isAdmin, setIsAdmin] = useState(false);
   const [tutorialOpen, setTutorialOpen] = useState(false);
+  const [filterMenuTab, setFilterMenuTab] = useState<FilterTab>('dept');
+  const [tutorialHoverRecord, setTutorialHoverRecord] = useState<ProjectRecord | null>(null);
+  const tutorialSavedFilters = useRef<FilterState | null>(null);
   const seqPos = useRef(0);
   const listening = useRef(false);
   const seqTimeout = useRef<ReturnType<typeof setTimeout>>();
@@ -116,6 +119,81 @@ export default function App() {
 
   function handleSelect(record: ProjectRecord) {
     setSelectedRecord(prev => prev?.footer === record.footer ? null : record);
+  }
+
+  function handleTutorialStep(key: string) {
+    switch (key) {
+      case 'color-blocks':
+        setFiltersOpen(false);
+        setSelectedRecord(null);
+        setTutorialHoverRecord(null);
+        break;
+      case 'hover-tooltip':
+        setFiltersOpen(false);
+        setSelectedRecord(null);
+        setTutorialHoverRecord(records[0]);
+        break;
+      case 'click-to-open':
+        setTutorialHoverRecord(null);
+        setFiltersOpen(false);
+        setSelectedRecord(records[0]);
+        break;
+      case 'table-layout':
+        setTutorialHoverRecord(null);
+        setSelectedRecord(null);
+        setFiltersOpen(false);
+        break;
+      case 'author-search':
+      case 'advisor-search':
+      case 'clear-search':
+      case 'filters-overview':
+        setTutorialHoverRecord(null);
+        setSelectedRecord(null);
+        setFiltersOpen(false);
+        break;
+      case 'dept-college':
+        setTutorialHoverRecord(null);
+        setSelectedRecord(null);
+        setFiltersOpen(true);
+        setFilterMenuTab('dept');
+        break;
+      case 'project-type':
+        setFiltersOpen(true);
+        setFilterMenuTab('project');
+        break;
+      case 'highlight-toggles':
+        setFiltersOpen(true);
+        setFilterMenuTab('project');
+        break;
+      case 'irb-labels':
+        setFiltersOpen(false);
+        if (tutorialSavedFilters.current === null) tutorialSavedFilters.current = filters;
+        setFilters({ ...DEFAULT_FILTERS, humanSubjects: true });
+        break;
+      case 'ai-tooltip': {
+        setFiltersOpen(false);
+        if (tutorialSavedFilters.current === null) tutorialSavedFilters.current = filters;
+        setFilters({ ...DEFAULT_FILTERS, useOfAI: true });
+        const aiRec = records.find(r => r.useOfAI === 'Yes') ?? null;
+        setTutorialHoverRecord(aiRec);
+        break;
+      }
+      default:
+        setFiltersOpen(false);
+        break;
+    }
+  }
+
+  function handleTutorialClose() {
+    setTutorialOpen(false);
+    setFiltersOpen(false);
+    setSelectedRecord(null);
+    setTutorialHoverRecord(null);
+    setFilterMenuTab('dept');
+    if (tutorialSavedFilters.current !== null) {
+      setFilters(tutorialSavedFilters.current);
+      tutorialSavedFilters.current = null;
+    }
   }
 
   const hasActiveFilters = Object.values(filters).some(v => v !== null && v !== false);
@@ -363,6 +441,8 @@ export default function App() {
                   deptStats={deptStats}
                   records={records}
                   onClose={() => setFiltersOpen(false)}
+                  activeTab={filterMenuTab}
+                  onTabChange={setFilterMenuTab}
                 />
               </div>
             </div>
@@ -409,6 +489,7 @@ export default function App() {
                 authorFilter={authorFilter}
                 advisorFilter={advisorFilter}
                 onSelect={handleSelect}
+                tutorialHoverRecord={tutorialHoverRecord}
               />
             )}
           </div>
@@ -419,7 +500,11 @@ export default function App() {
         </div>
       </div>
 
-      <TutorialModal isOpen={tutorialOpen} onClose={() => setTutorialOpen(false)} />
+      <TutorialModal
+        isOpen={tutorialOpen}
+        onClose={handleTutorialClose}
+        onStepEnter={handleTutorialStep}
+      />
     </AdminContext.Provider>
   );
 }

@@ -1,4 +1,5 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ProjectRecord, FilterState, TooltipState } from '../types';
 import { getDepartmentColor } from '../utils/colorMap';
 import { formatPeopleForTooltip, parsePeople } from '../utils/nameParser';
@@ -25,6 +26,7 @@ interface TableMapProps {
   authorFilter: string;
   advisorFilter: string;
   onSelect: (record: ProjectRecord) => void;
+  tutorialHoverRecord?: ProjectRecord | null;
 }
 
 function recordMatchesAuthor(record: ProjectRecord, filter: string): boolean {
@@ -55,10 +57,24 @@ export function TableMap({
   authorFilter,
   advisorFilter,
   onSelect,
+  tutorialHoverRecord,
 }: TableMapProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+  const [tutorialTooltip, setTutorialTooltip] = useState<TooltipState | null>(null);
   const isAdmin = useAdmin();
+
+  useEffect(() => {
+    if (!tutorialHoverRecord) { setTutorialTooltip(null); return; }
+    const timer = setTimeout(() => {
+      const el = svgRef.current?.querySelector(`g[data-block-id="${tutorialHoverRecord.footer}"]`);
+      if (el) {
+        const r = el.getBoundingClientRect();
+        setTutorialTooltip({ x: r.left, y: r.bottom, record: tutorialHoverRecord });
+      }
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [tutorialHoverRecord]);
 
   const layout = buildLayout(records);
   const rows = numRows(records.length);
@@ -106,27 +122,29 @@ export function TableMap({
         style={{ display: 'block', userSelect: 'none' }}
       >
         {/* Row direction arrows */}
-        {Array.from({ length: rows }, (_, rowIdx) => {
-          const isLTR = rowIdx % 2 === 0;
-          const y = yPositions[rowIdx] + BLOCK_H / 2;
-          const arrowColor = '#bbb';
-          const arrowSize = 8;
-          const x = PADDING + HALF_W + CENTER_GAP / 2;
+        <g id="row-arrows" aria-hidden="true">
+          {Array.from({ length: rows }, (_, rowIdx) => {
+            const isLTR = rowIdx % 2 === 0;
+            const y = yPositions[rowIdx] + BLOCK_H / 2;
+            const arrowColor = '#bbb';
+            const arrowSize = 8;
+            const x = PADDING + HALF_W + CENTER_GAP / 2;
 
-          return (
-            <g key={`arrow-${rowIdx}`} aria-hidden="true">
-              <line x1={x - 8} y1={y} x2={x + 8} y2={y} stroke={arrowColor} strokeWidth={1.5} />
-              <polygon
-                points={
-                  isLTR
-                    ? `${x + arrowSize},${y} ${x + arrowSize - 5},${y - 3} ${x + arrowSize - 5},${y + 3}`
-                    : `${x - arrowSize},${y} ${x - arrowSize + 5},${y - 3} ${x - arrowSize + 5},${y + 3}`
-                }
-                fill={arrowColor}
-              />
-            </g>
-          );
-        })}
+            return (
+              <g key={`arrow-${rowIdx}`}>
+                <line x1={x - 8} y1={y} x2={x + 8} y2={y} stroke={arrowColor} strokeWidth={1.5} />
+                <polygon
+                  points={
+                    isLTR
+                      ? `${x + arrowSize},${y} ${x + arrowSize - 5},${y - 3} ${x + arrowSize - 5},${y + 3}`
+                      : `${x - arrowSize},${y} ${x - arrowSize + 5},${y - 3} ${x - arrowSize + 5},${y + 3}`
+                  }
+                  fill={arrowColor}
+                />
+              </g>
+            );
+          })}
+        </g>
 
         {/* Blocks */}
         {layout.map((block) => {
@@ -165,6 +183,10 @@ export function TableMap({
           return (
             <g
               key={record.footer}
+              id={block.seqIndex === 0 ? 'tutorial-target-block' : undefined}
+              data-block-id={record.footer}
+              data-irb-block={badgeLines.length > 0 ? '' : undefined}
+              data-ai-block={record.useOfAI === 'Yes' ? '' : undefined}
               role="button"
               tabIndex={0}
               aria-label={`${record.footer}: ${record.title}`}
@@ -243,8 +265,10 @@ export function TableMap({
         })}
       </svg>
 
-      {tooltip && (
-        <Tooltip state={tooltip} showAIDetails={filters.useOfAI} />
+      {tooltip && <Tooltip state={tooltip} showAIDetails={filters.useOfAI} />}
+      {tutorialTooltip && createPortal(
+        <Tooltip state={tutorialTooltip} showAIDetails={filters.useOfAI} zIndex={9070} />,
+        document.body,
       )}
 
       <style>{`
@@ -278,9 +302,11 @@ export function TableMap({
 function Tooltip({
   state,
   showAIDetails,
+  zIndex = 1000,
 }: {
   state: TooltipState;
   showAIDetails: boolean;
+  zIndex?: number;
 }) {
   const { x, y, record } = state;
   const title = record.title !== '—' ? record.title : record.footer;
@@ -313,7 +339,7 @@ function Tooltip({
         fontSize: 12,
         lineHeight: 1.55,
         pointerEvents: 'none',
-        zIndex: 1000,
+        zIndex,
         boxShadow: '0 6px 24px rgba(0,0,0,0.35)',
         backdropFilter: 'blur(6px)',
       }}

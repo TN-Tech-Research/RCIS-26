@@ -236,6 +236,7 @@ export function DetailPanel({ record, onClose }: DetailPanelProps) {
 
   return (
     <div
+      id="detail-panel-root"
       ref={panelRef}
       role="complementary"
       aria-label="Project details"
