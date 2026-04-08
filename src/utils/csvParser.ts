@@ -71,6 +71,11 @@ function extractFooterNumber(footer: string): number | null {
   return parseInt(match[1], 10);
 }
 
+function extractFooterPrefix(footer: string): string {
+  const idx = footer.lastIndexOf('-');
+  return idx >= 0 ? footer.slice(0, idx) : footer;
+}
+
 function fallback(value: string): string {
   return value.trim() || '—';
 }
@@ -140,6 +145,23 @@ export function parseCSV(rawText: string): ProjectRecord[] {
     });
   }
 
-  records.sort((a, b) => a.footerNumber - b.footerNumber);
+  // Sort alphabetically by footer prefix, then by existing number within each prefix.
+  // This ensures dept groups are in alphabetical order regardless of how numbers
+  // appear in the CSV (e.g. ENG entries interleaved with EDU entries).
+  records.sort((a, b) => {
+    const pa = extractFooterPrefix(a.footer);
+    const pb = extractFooterPrefix(b.footer);
+    if (pa !== pb) return pa.localeCompare(pb);
+    return a.footerNumber - b.footerNumber;
+  });
+
+  // Reassign sequential footer numbers (1-based global) and rebuild footer strings.
+  for (let i = 0; i < records.length; i++) {
+    const prefix = extractFooterPrefix(records[i].footer);
+    const newNum = i + 1;
+    records[i].footer = `${prefix}-${newNum}`;
+    records[i].footerNumber = newNum;
+  }
+
   return records;
 }

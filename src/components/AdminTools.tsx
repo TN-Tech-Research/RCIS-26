@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ProjectRecord } from '../types';
 import { parsePeople } from '../utils/nameParser';
+import { COLLEGES, getDepartmentCollege } from '../utils/colorMap';
 
 interface AdminToolsProps {
   filteredRecords: ProjectRecord[];
@@ -27,8 +28,22 @@ function collectEmails(records: ProjectRecord[]): string[] {
   return emails;
 }
 
+interface AdvisorEntry {
+  name: string;
+  projects: ProjectRecord[];
+  count: number;
+  college: string | null; // majority college for color hint
+}
+
+interface TooltipInfo {
+  name: string;
+  projects: ProjectRecord[];
+  anchorY: number;
+}
+
 export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onExit }: AdminToolsProps) {
   const [copied, setCopied] = useState(false);
+  const [advisorTooltip, setAdvisorTooltip] = useState<TooltipInfo | null>(null);
 
   const emails = useMemo(() => collectEmails(filteredRecords), [filteredRecords]);
 
@@ -64,6 +79,36 @@ export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onEx
       pubCount,
     };
   }, [filteredRecords]);
+
+  const advisorData = useMemo((): AdvisorEntry[] => {
+    const map = new Map<string, ProjectRecord[]>();
+    for (const r of filteredRecords) {
+      const advisor = r.facultyAdvisor && r.facultyAdvisor !== '—' ? r.facultyAdvisor.trim() : null;
+      if (!advisor) continue;
+      if (!map.has(advisor)) map.set(advisor, []);
+      map.get(advisor)!.push(r);
+    }
+    return Array.from(map.entries())
+      .map(([name, projects]) => {
+        // Determine majority college for this advisor's current set of projects
+        const collegeCounts = new Map<string, number>();
+        for (const p of projects) {
+          const c = getDepartmentCollege(p.primaryAuthorDepartment);
+          if (c !== '?') collegeCounts.set(c, (collegeCounts.get(c) ?? 0) + 1);
+        }
+        let majorityCollege: string | null = null;
+        let maxC = 0;
+        for (const [c, cnt] of collegeCounts) {
+          if (cnt > maxC) { maxC = cnt; majorityCollege = c; }
+        }
+        return { name, projects, count: projects.length, college: majorityCollege };
+      })
+      .sort((a, b) => b.count - a.count);
+  }, [filteredRecords]);
+
+  const maxAdvisorCount = advisorData.length > 0 ? advisorData[0].count : 1;
+
+  const advisedCount = filteredRecords.filter(r => r.facultyAdvisor && r.facultyAdvisor !== '—').length;
 
   async function copyEmails() {
     try {
@@ -138,6 +183,103 @@ export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onEx
           Exit Admin Mode
         </button>
       </div>
+
+      {/* ── Faculty Advisor Load Report ──────────────────────────────────────── */}
+      {advisorData.length > 0 && (
+        <div style={{ borderBottom: '1px solid #ede9f6', padding: '14px 18px 16px', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 12 }}>
+            <SectionLabel>Faculty Advisor Load</SectionLabel>
+            <span style={{ fontSize: 11, color: '#aaa' }}>
+              {advisorData.length} advisor{advisorData.length !== 1 ? 's' : ''}
+              {' · '}
+              {advisedCount} project{advisedCount !== 1 ? 's' : ''} advised
+            </span>
+          </div>
+
+          {/* Bar chart */}
+          <div
+            style={{ maxHeight: 292, overflowY: 'auto', paddingRight: 2 }}
+            onMouseLeave={() => setAdvisorTooltip(null)}
+          >
+            {advisorData.map(({ name, projects, count, college }) => {
+              const pct = maxAdvisorCount > 0 ? (count / maxAdvisorCount) * 100 : 0;
+              const intensity = maxAdvisorCount > 1 ? (count - 1) / (maxAdvisorCount - 1) : 1;
+              // Bar color: derive from majority college hue, darkening with load intensity
+              const collegeInfo = college ? COLLEGES.find(c => c.prefix === college) : null;
+              // Extract hue from college headerColor (hsl(H, S%, L%)) or fall back to 261 (purple)
+              let barHue = 261;
+              let barSat = 56;
+              if (collegeInfo?.headerColor) {
+                const m = collegeInfo.headerColor.match(/hsl\((\d+),\s*([\d.]+)%/);
+                if (m) { barHue = parseInt(m[1]); barSat = parseFloat(m[2]); }
+              }
+              const barL = Math.round(70 - intensity * 28); // L: 70% (lightest) → 42% (darkest)
+              const barColor = `hsl(${barHue}, ${barSat}%, ${barL}%)`;
+              const isHovered = advisorTooltip?.name === name;
+
+              return (
+                <div
+                  key={name}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5, cursor: 'default' }}
+                  onMouseEnter={e => {
+                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                    setAdvisorTooltip({ name, projects, anchorY: rect.top + rect.height / 2 });
+                  }}
+                >
+                  {/* Advisor name */}
+                  <div style={{
+                    width: 148,
+                    fontSize: 11,
+                    color: isHovered ? '#4b2e83' : '#444',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    flexShrink: 0,
+                    fontWeight: isHovered ? 600 : 400,
+                    transition: 'color 0.1s, font-weight 0.1s',
+                  }}>
+                    {name}
+                  </div>
+
+                  {/* Bar track */}
+                  <div style={{ flex: 1, height: 14, background: '#ede9f6', borderRadius: 4, overflow: 'hidden' }}>
+                    <div style={{
+                      width: `${pct}%`,
+                      height: '100%',
+                      background: barColor,
+                      borderRadius: 4,
+                      transition: 'width 0.35s ease, filter 0.1s',
+                      filter: isHovered ? 'brightness(1.12)' : 'none',
+                    }} />
+                  </div>
+
+                  {/* Count badge */}
+                  <div style={{
+                    fontSize: 11.5,
+                    color: isHovered ? '#4b2e83' : '#666',
+                    fontWeight: isHovered ? 700 : 500,
+                    width: 22,
+                    textAlign: 'right',
+                    flexShrink: 0,
+                    transition: 'color 0.1s',
+                  }}>
+                    {count}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Floating tooltip — position: fixed so it escapes scroll overflow */}
+          {advisorTooltip && (
+            <AdvisorTooltip
+              name={advisorTooltip.name}
+              projects={advisorTooltip.projects}
+              anchorY={advisorTooltip.anchorY}
+            />
+          )}
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: 0 }}>
         {/* Email tools column */}
@@ -303,6 +445,84 @@ function BarList({ items, total }: { items: [string, number][]; total: number })
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function AdvisorTooltip({
+  name, projects, anchorY,
+}: {
+  name: string;
+  projects: ProjectRecord[];
+  anchorY: number;
+}) {
+  // Clamp so tooltip stays within viewport vertically
+  const tooltipH = Math.min(projects.length * 22 + 52, 280);
+  const top = Math.min(Math.max(anchorY - tooltipH / 2, 8), window.innerHeight - tooltipH - 8);
+
+  return (
+    <div style={{
+      position: 'fixed',
+      right: 24,
+      top,
+      width: 310,
+      background: '#fff',
+      border: '1px solid #d0c8ee',
+      borderRadius: 10,
+      boxShadow: '0 6px 24px rgba(75,46,131,0.2), 0 1px 4px rgba(0,0,0,0.08)',
+      padding: '10px 12px',
+      zIndex: 9999,
+      pointerEvents: 'none',
+    }}>
+      {/* Tooltip header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
+        <div style={{
+          width: 7, height: 7, borderRadius: '50%',
+          background: '#4b2e83', flexShrink: 0,
+        }} />
+        <div style={{ fontSize: 11.5, fontWeight: 700, color: '#251558', lineHeight: 1.3 }}>
+          {name}
+        </div>
+        <div style={{
+          marginLeft: 'auto',
+          fontSize: 10.5,
+          fontWeight: 700,
+          color: '#4b2e83',
+          background: 'rgba(75,46,131,0.1)',
+          padding: '1px 7px',
+          borderRadius: 10,
+          flexShrink: 0,
+        }}>
+          {projects.length} project{projects.length !== 1 ? 's' : ''}
+        </div>
+      </div>
+
+      {/* Project list */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxHeight: 220, overflowY: 'auto' }}>
+        {projects.map(p => (
+          <div key={p.footer} style={{ display: 'flex', gap: 7, alignItems: 'baseline' }}>
+            <span style={{
+              fontFamily: 'monospace',
+              fontSize: 9.5,
+              color: '#888',
+              flexShrink: 0,
+              letterSpacing: '0.02em',
+            }}>
+              {p.footer}
+            </span>
+            <span style={{
+              fontSize: 10.5,
+              color: '#333',
+              lineHeight: 1.4,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}>
+              {p.title}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
