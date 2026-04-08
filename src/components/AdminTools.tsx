@@ -377,7 +377,7 @@ export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onEx
                 style={{
                   width: '100%',
                   boxSizing: 'border-box',
-                  fontFamily: 'monospace',
+                  fontFamily: 'Nohemi',
                   fontSize: 10.5,
                   color: '#555',
                   border: '1px solid #e0daea',
@@ -601,7 +601,7 @@ function AdvisorTooltip({
         {projects.map(p => (
           <div key={p.footer} style={{ display: 'flex', gap: 7, alignItems: 'baseline' }}>
             <span style={{
-              fontFamily: 'monospace',
+              fontFamily: 'Nohemi',
               fontSize: 9.5,
               color: '#888',
               flexShrink: 0,

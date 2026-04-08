@@ -311,7 +311,7 @@ export function TutorialModal({ isOpen, onClose, onStepEnter }: Props) {
           boxShadow: '0 10px 48px rgba(20,8,60,0.3), 0 2px 10px rgba(0,0,0,0.12)',
           padding: '16px 20px 14px',
           zIndex: 9100,
-          fontFamily: "'Nohemi', system-ui, -apple-system, sans-serif",
+          fontFamily: 'Nohemi',
         }}
       >
         {/* Top row: section badge + progress dots + close */}

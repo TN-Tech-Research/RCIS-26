@@ -235,7 +235,7 @@ export function TableMap({
                 dominantBaseline="middle"
                 fontSize={11}
                 fontWeight={isSelected ? 700 : 600}
-                fontFamily="Nohemi, system-ui, sans-serif"
+                fontFamily="Nohemi"
                 fill={color.text}
                 fillOpacity={isDimmed ? 0.3 : 1}
                 style={{ pointerEvents: 'none' }}
@@ -252,7 +252,7 @@ export function TableMap({
                   textAnchor="middle"
                   dominantBaseline="auto"
                   fontSize={8}
-                  fontFamily="system-ui, monospace"
+                  fontFamily="Nohemi"
                   fill={color.text}
                   fillOpacity={isDimmed ? 0.2 : 0.82}
                   style={{ pointerEvents: 'none' }}
@@ -336,6 +336,7 @@ function Tooltip({
         color: '#f0eef8',
         borderRadius: 8,
         padding: '9px 13px',
+        fontFamily: 'Nohemi',
         fontSize: 12,
         lineHeight: 1.55,
         pointerEvents: 'none',
