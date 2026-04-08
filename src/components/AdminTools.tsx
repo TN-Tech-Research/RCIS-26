@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ProjectRecord } from '../types';
 import { parsePeople } from '../utils/nameParser';
-import { COLLEGES, getDepartmentCollege } from '../utils/colorMap';
+import { getDepartmentCollege } from '../utils/colorMap';
 
 interface AdminToolsProps {
   filteredRecords: ProjectRecord[];
@@ -39,6 +39,7 @@ interface TooltipInfo {
   name: string;
   projects: ProjectRecord[];
   anchorY: number;
+  anchorX: number;
 }
 
 export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onExit }: AdminToolsProps) {
@@ -196,25 +197,13 @@ export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onEx
             </span>
           </div>
 
-          {/* Bar chart */}
+          {/* Pie chart rows */}
           <div
             style={{ maxHeight: 292, overflowY: 'auto', paddingRight: 2 }}
             onMouseLeave={() => setAdvisorTooltip(null)}
           >
-            {advisorData.map(({ name, projects, count, college }) => {
+            {advisorData.map(({ name, projects, count }) => {
               const pct = maxAdvisorCount > 0 ? (count / maxAdvisorCount) * 100 : 0;
-              const intensity = maxAdvisorCount > 1 ? (count - 1) / (maxAdvisorCount - 1) : 1;
-              // Bar color: derive from majority college hue, darkening with load intensity
-              const collegeInfo = college ? COLLEGES.find(c => c.prefix === college) : null;
-              // Extract hue from college headerColor (hsl(H, S%, L%)) or fall back to 261 (purple)
-              let barHue = 261;
-              let barSat = 56;
-              if (collegeInfo?.headerColor) {
-                const m = collegeInfo.headerColor.match(/hsl\((\d+),\s*([\d.]+)%/);
-                if (m) { barHue = parseInt(m[1]); barSat = parseFloat(m[2]); }
-              }
-              const barL = Math.round(70 - intensity * 28); // L: 70% (lightest) → 42% (darkest)
-              const barColor = `hsl(${barHue}, ${barSat}%, ${barL}%)`;
               const isHovered = advisorTooltip?.name === name;
 
               return (
@@ -223,7 +212,7 @@ export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onEx
                   style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5, cursor: 'default' }}
                   onMouseEnter={e => {
                     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                    setAdvisorTooltip({ name, projects, anchorY: rect.top + rect.height / 2 });
+                    setAdvisorTooltip({ name, projects, anchorY: rect.top + rect.height / 2, anchorX: rect.left });
                   }}
                 >
                   {/* Advisor name */}
@@ -241,17 +230,16 @@ export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onEx
                     {name}
                   </div>
 
-                  {/* Bar track */}
-                  <div style={{ flex: 1, height: 14, background: '#ede9f6', borderRadius: 4, overflow: 'hidden' }}>
-                    <div style={{
-                      width: `${pct}%`,
-                      height: '100%',
-                      background: barColor,
-                      borderRadius: 4,
-                      transition: 'width 0.35s ease, filter 0.1s',
-                      filter: isHovered ? 'brightness(1.12)' : 'none',
-                    }} />
-                  </div>
+                  {/* Pie chart */}
+                  <div style={{
+                    width: 26,
+                    height: 26,
+                    borderRadius: '50%',
+                    background: `conic-gradient(from -90deg, #7c5cbf 0deg, #7c5cbf ${pct * 3.6}deg, #ddd6f5 ${pct * 3.6}deg, #ddd6f5 360deg)`,
+                    flexShrink: 0,
+                    filter: isHovered ? 'brightness(1.12) drop-shadow(0 0 3px rgba(124,92,191,0.4))' : 'none',
+                    transition: 'filter 0.1s',
+                  }} />
 
                   {/* Count badge */}
                   <div style={{
@@ -276,6 +264,7 @@ export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onEx
               name={advisorTooltip.name}
               projects={advisorTooltip.projects}
               anchorY={advisorTooltip.anchorY}
+              anchorX={advisorTooltip.anchorX}
             />
           )}
         </div>
@@ -450,22 +439,27 @@ function BarList({ items, total }: { items: [string, number][]; total: number })
 }
 
 function AdvisorTooltip({
-  name, projects, anchorY,
+  name, projects, anchorY, anchorX,
 }: {
   name: string;
   projects: ProjectRecord[];
   anchorY: number;
+  anchorX: number;
 }) {
+  const tooltipW = 310;
+  const gap = 10;
   // Clamp so tooltip stays within viewport vertically
-  const tooltipH = Math.min(projects.length * 22 + 52, 280);
+  const tooltipH = Math.min(projects.length * 22 + 44, 280);
   const top = Math.min(Math.max(anchorY - tooltipH / 2, 8), window.innerHeight - tooltipH - 8);
+  // Position to the left of the admin tools panel
+  const left = Math.max(anchorX - tooltipW - gap, 4);
 
   return (
     <div style={{
       position: 'fixed',
-      right: 24,
+      left,
       top,
-      width: 310,
+      width: tooltipW,
       background: '#fff',
       border: '1px solid #d0c8ee',
       borderRadius: 10,
@@ -480,9 +474,6 @@ function AdvisorTooltip({
           width: 7, height: 7, borderRadius: '50%',
           background: '#4b2e83', flexShrink: 0,
         }} />
-        <div style={{ fontSize: 11.5, fontWeight: 700, color: '#251558', lineHeight: 1.3 }}>
-          {name}
-        </div>
         <div style={{
           marginLeft: 'auto',
           fontSize: 10.5,
