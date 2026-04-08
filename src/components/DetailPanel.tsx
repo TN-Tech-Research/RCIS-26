@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ProjectRecord } from '../types';
 import { getDepartmentColor } from '../utils/colorMap';
 import { parsePeople, Person } from '../utils/nameParser';
+import { useAdmin } from '../contexts/AdminContext';
 
 interface DetailPanelProps {
   record: ProjectRecord;
@@ -64,8 +65,9 @@ interface PopupPos { x: number; y: number }
 
 function PersonChip({ person }: { person: Person }) {
   const [popup, setPopup] = useState<PopupPos | null>(null);
+  const isAdmin = useAdmin();
 
-  if (!person.email) {
+  if (!person.email || !isAdmin) {
     return <span style={{ color: '#1a1a2e' }}>{person.displayName}</span>;
   }
 
@@ -137,6 +139,7 @@ function PersonChip({ person }: { person: Person }) {
 // ── Person field ──────────────────────────────────────────────────────────────
 
 function PersonField({ label, raw, emailAll = false }: { label: string; raw: string; emailAll?: boolean }) {
+  const isAdmin = useAdmin();
   if (raw === '—') return null;
   const people = parsePeople(raw);
   if (people.length === 0) return null;
@@ -148,7 +151,7 @@ function PersonField({ label, raw, emailAll = false }: { label: string; raw: str
     <div style={{ marginBottom: 14 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
         <span style={LABEL_STYLE}>{label}</span>
-        {emailAll && mailtoHref && (
+        {isAdmin && emailAll && mailtoHref && (
           <a
             href={mailtoHref}
             title={`Email all ${label.toLowerCase()}`}

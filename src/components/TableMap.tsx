@@ -2,6 +2,7 @@ import { useRef, useState, useCallback } from 'react';
 import { ProjectRecord, FilterState, TooltipState } from '../types';
 import { getDepartmentColor } from '../utils/colorMap';
 import { formatPeopleForTooltip, parsePeople } from '../utils/nameParser';
+import { useAdmin } from '../contexts/AdminContext';
 import {
   buildLayout,
   blockX,
@@ -57,6 +58,7 @@ export function TableMap({
 }: TableMapProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+  const isAdmin = useAdmin();
 
   const layout = buildLayout(records);
   const rows = numRows(records.length);
@@ -151,9 +153,9 @@ export function TableMap({
           // Badge lines for IRB / IACUC when those filters are active and record matches
           const badgeLines: string[] = [];
           if (filters.humanSubjects && record.irbNumber)
-            badgeLines.push(`IRB ${record.irbNumber.replace(/,/g, '')}`);
+            badgeLines.push(isAdmin ? `IRB ${record.irbNumber.replace(/,/g, '')}` : 'IRB');
           if (filters.animalSubjects && record.iacucNo)
-            badgeLines.push(`IACUC ${record.iacucNo.replace(/,/g, '')}`);
+            badgeLines.push(isAdmin ? `IACUC ${record.iacucNo.replace(/,/g, '')}` : 'IACUC');
 
           // Vertical center shifts up when we have badges (to leave room at bottom)
           const labelY = badgeLines.length > 0
@@ -211,7 +213,7 @@ export function TableMap({
                 dominantBaseline="middle"
                 fontSize={11}
                 fontWeight={isSelected ? 700 : 600}
-                fontFamily="system-ui, sans-serif"
+                fontFamily="Nohemi, system-ui, sans-serif"
                 fill={color.text}
                 fillOpacity={isDimmed ? 0.3 : 1}
                 style={{ pointerEvents: 'none' }}

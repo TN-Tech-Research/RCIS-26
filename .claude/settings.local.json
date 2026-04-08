@@ -8,7 +8,13 @@
       "Bash(node:*)",
       "Bash(curl -s http://localhost:5173/)",
       "Bash(pkill -f \"vite --port 5173\")",
-      "Bash(kill %1)"
+      "Bash(kill %1)",
+      "Bash(ls /home/bates/Documents/RCIS26/RCIS_Tables/Table_numbers*)",
+      "Read(//dev/**)",
+      "Bash(CSV_KEY=$\\(cat /dev/null\\) npm run build)",
+      "Bash(gh secret:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

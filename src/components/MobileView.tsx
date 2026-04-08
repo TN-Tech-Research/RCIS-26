@@ -184,7 +184,7 @@ export default function MobileView({ records, logoSrc }: MobileViewProps) {
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
+      fontFamily: "'Nohemi', system-ui, -apple-system, sans-serif",
       background: '#fff',
     }}>
       <style>{`
