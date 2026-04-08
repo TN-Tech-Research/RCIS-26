@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { ProjectRecord } from '../types';
 import { parsePeople } from '../utils/nameParser';
-import { getDepartmentCollege } from '../utils/colorMap';
+import { COLLEGES, getDepartmentCollege } from '../utils/colorMap';
 
 interface AdminToolsProps {
   filteredRecords: ProjectRecord[];
@@ -204,7 +204,7 @@ export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onEx
             style={{ maxHeight: 292, overflowY: 'auto', paddingRight: 2 }}
             onMouseLeave={() => setAdvisorTooltip(null)}
           >
-            {advisorData.map(({ name, projects, count }) => {
+            {advisorData.map(({ name, projects, count, college }) => {
               const pct = maxAdvisorCount > 0 ? (count / maxAdvisorCount) * 100 : 0;
               const intensity = maxAdvisorCount > 1 ? (count - 1) / (maxAdvisorCount - 1) : 1;
               const collegeInfo = college ? COLLEGES.find(c => c.prefix === college) : null;
@@ -243,16 +243,17 @@ export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onEx
                     {name}
                   </div>
 
-                  {/* Pie chart */}
-                  <div style={{
-                    width: 26,
-                    height: 26,
-                    borderRadius: '50%',
-                    background: `conic-gradient(from -90deg, #7c5cbf 0deg, #7c5cbf ${pct * 3.6}deg, #ddd6f5 ${pct * 3.6}deg, #ddd6f5 360deg)`,
-                    flexShrink: 0,
-                    filter: isHovered ? 'brightness(1.12) drop-shadow(0 0 3px rgba(124,92,191,0.4))' : 'none',
-                    transition: 'filter 0.1s',
-                  }} />
+                  {/* Bar track */}
+                  <div style={{ flex: 1, height: 14, background: '#ede9f6', borderRadius: 4, overflow: 'hidden' }}>
+                    <div style={{
+                      width: `${pct}%`,
+                      height: '100%',
+                      background: barColor,
+                      borderRadius: 4,
+                      transition: 'width 0.35s ease, filter 0.1s',
+                      filter: isHovered ? 'brightness(1.12)' : 'none',
+                    }} />
+                  </div>
 
                   {/* Count badge */}
                   <div style={{
