@@ -199,7 +199,7 @@ export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onEx
             </span>
           </div>
 
-          {/* Pie chart rows */}
+          {/* Advisor bar rows */}
           <div
             style={{ maxHeight: 292, overflowY: 'auto', paddingRight: 2 }}
             onMouseLeave={() => setAdvisorTooltip(null)}
