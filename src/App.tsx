@@ -40,7 +40,7 @@ export default function App() {
   const [advisorInput, setAdvisorInput] = useState('');
   const [advisorFilter, setAdvisorFilter] = useState('');
 
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('rcis_admin') === 'true');
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const [filterMenuTab, setFilterMenuTab] = useState<FilterTab>('dept');
   const [tutorialHoverRecord, setTutorialHoverRecord] = useState<ProjectRecord | null>(null);
@@ -79,6 +79,7 @@ export default function App() {
       if (e.key === _SEQ[seqPos.current]) {
         seqPos.current++;
         if (seqPos.current === _SEQ.length) {
+          localStorage.setItem('rcis_admin', 'true');
           setIsAdmin(true);
           listening.current = false;
           seqPos.current = 0;
@@ -465,7 +466,7 @@ export default function App() {
                   filteredRecords={filteredRecords}
                   allRecords={records}
                   hasActiveFilters={hasActiveFilters || !!authorFilter || !!advisorFilter}
-                  onExit={() => { setIsAdmin(false); setAdminOpen(false); }}
+                  onExit={() => { localStorage.removeItem('rcis_admin'); setIsAdmin(false); setAdminOpen(false); }}
                   onClose={() => setAdminOpen(false)}
                 />
               </div>

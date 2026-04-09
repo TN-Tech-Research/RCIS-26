@@ -21,6 +21,7 @@ export interface CollegeInfo {
   name: string;
   prefix: string;
   headerColor: string; // mid-range hue for the college header swatch
+  unitName: string;    // exact value of Unit:UnitName in the CSV
 }
 
 const DARK = '#1a1a2e';
@@ -67,13 +68,13 @@ const DEPT_PALETTE: Record<string, { color: ColorInfo; college: string }> = {
 
 // College display info (sorted by prefix for legend ordering)
 export const COLLEGES: CollegeInfo[] = [
-  { prefix: 'AHE', name: 'Agriculture & Human Ecology', headerColor: 'hsl(103, 53%, 70%)' },
-  { prefix: 'ASC', name: 'Arts & Sciences',             headerColor: 'hsl(224, 57%, 72%)' },
-  { prefix: 'CEI', name: 'Interdisciplinary Studies',   headerColor: 'hsl(152, 50%, 67%)' },
-  { prefix: 'COB', name: 'Business',                    headerColor: 'hsl(38, 62%, 70%)'  },
-  { prefix: 'EDU', name: 'Education & Human Sciences',  headerColor: 'hsl(325, 52%, 72%)' },
-  { prefix: 'ENG', name: 'Engineering',                 headerColor: 'hsl(197, 55%, 70%)' },
-  { prefix: 'NUR', name: 'Nursing',                     headerColor: 'hsl(283, 52%, 71%)' },
+  { prefix: 'AHE', name: 'Agriculture & Human Ecology',      headerColor: 'hsl(103, 53%, 70%)', unitName: 'College of Agriculture and Human Ecology' },
+  { prefix: 'ASC', name: 'Arts & Sciences',                  headerColor: 'hsl(224, 57%, 72%)', unitName: 'College of Arts and Science' },
+  { prefix: 'CEI', name: 'Emerging & Integrative Studies',   headerColor: 'hsl(152, 50%, 67%)', unitName: 'College of Emerging and Integrative Student Success' },
+  { prefix: 'COB', name: 'Business',                         headerColor: 'hsl(38, 62%, 70%)',  unitName: 'College of Business' },
+  { prefix: 'EDU', name: 'Education & Human Sciences',       headerColor: 'hsl(325, 52%, 72%)', unitName: 'College of Education' },
+  { prefix: 'ENG', name: 'Engineering',                      headerColor: 'hsl(197, 55%, 70%)', unitName: 'College of Engineering' },
+  { prefix: 'NUR', name: 'Nursing',                          headerColor: 'hsl(283, 52%, 71%)', unitName: 'Whitson-Hester School of Nursing' },
 ];
 
 export function getDepartmentColor(dept: string): ColorInfo {

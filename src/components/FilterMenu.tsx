@@ -2,6 +2,14 @@ import { useMemo } from 'react';
 import { FilterState, DEFAULT_FILTERS, ProjectRecord } from '../types';
 import { DeptStat, CollegeInfo, COLLEGES } from '../utils/colorMap';
 
+import aheIcon from '../assets/AHE.png';
+import ascIcon from '../assets/ASC.png';
+import ceiIcon from '../assets/CEI.png';
+import cobIcon from '../assets/COB.png';
+import eduIcon from '../assets/EDU.png';
+import engIcon from '../assets/ENG.png';
+import nurIcon from '../assets/NUR.png';
+
 export type FilterTab = 'dept' | 'college' | 'project';
 
 interface FilterMenuProps {
@@ -13,6 +21,80 @@ interface FilterMenuProps {
   activeTab: FilterTab;
   onTabChange: (tab: FilterTab) => void;
 }
+
+// ─── College icon helpers ──────────────────────────────────────────────────────
+
+const COLLEGE_ICON_MAP: Record<string, string> = {
+  AHE: aheIcon,
+  ASC: ascIcon,
+  CEI: ceiIcon,
+  COB: cobIcon,
+  EDU: eduIcon,
+  ENG: engIcon,
+  NUR: nurIcon,
+};
+
+// The icon PNGs use a consistent purple palette (~hue 265).
+// hue-rotate shifts to the target hue; saturate + brightness tighten the match.
+const ICON_BASE_HUE = 265;
+
+function getIconFilter(headerColor: string): string {
+  const m = headerColor.match(/hsl\(\s*(\d+)/);
+  const targetHue = m ? parseInt(m[1]) : ICON_BASE_HUE;
+  const rotation = targetHue - ICON_BASE_HUE;
+  return `hue-rotate(${rotation}deg) saturate(1.4) brightness(0.97)`;
+}
+
+// Speech-bubble icon tinted to the college colour.
+// The badge prefix sits in the transparent area left of the bottom tail.
+function CollegeIcon({
+  prefix,
+  headerColor,
+  size = 32,
+  showLabel = true,
+}: {
+  prefix: string;
+  headerColor: string;
+  size?: number;
+  showLabel?: boolean;
+}) {
+  const icon = COLLEGE_ICON_MAP[prefix];
+  if (!icon) return null;
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <img
+        src={icon}
+        alt={prefix}
+        draggable={false}
+        style={{
+          width: size,
+          height: size,
+          display: 'block',
+          filter: getIconFilter(headerColor),
+          userSelect: 'none',
+        }}
+      />
+      {showLabel && (
+        <span style={{
+          position: 'absolute',
+          bottom: Math.round(size * 0.04),
+          left: Math.round(size * 0.08),
+          fontSize: Math.round(size * 0.23),
+          fontWeight: 800,
+          color: '#fff',
+          lineHeight: 1,
+          letterSpacing: '0.02em',
+          pointerEvents: 'none',
+          textShadow: '0 1px 3px rgba(0,0,0,0.45)',
+        }}>
+          {prefix}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ─── FilterMenu ───────────────────────────────────────────────────────────────
 
 export function FilterMenu({ filters, onChange, deptStats, records, onClose, activeTab, onTabChange }: FilterMenuProps) {
 
@@ -158,20 +240,13 @@ function DeptTab({
   }, [deptStats]);
 
   return (
-    <div id="filter-dept-content" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 24px', alignItems: 'flex-start' }}>
+    <div id="filter-dept-content" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {COLLEGES.map((college: CollegeInfo) => {
         const depts = byCollege.get(college.prefix);
         if (!depts || depts.length === 0) return null;
         return (
-          <div key={college.prefix} style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
-            <span style={{
-              fontSize: 11, fontWeight: 700, color: '#fff',
-              background: college.headerColor,
-              padding: '2px 7px', borderRadius: 4,
-              whiteSpace: 'nowrap', letterSpacing: '0.04em',
-            }}>
-              {college.prefix}
-            </span>
+          <div key={college.prefix} style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            <CollegeIcon prefix={college.prefix} headerColor={college.headerColor} size={32} showLabel={true} />
             {depts.map(({ dept, count, color }) => {
               const isActive = filters.dept === dept;
               const isDimmed = filters.dept !== null && !isActive;
@@ -222,35 +297,56 @@ function CollegeTab({
     for (const r of records) {
       if (r.unitName) counts.set(r.unitName, (counts.get(r.unitName) ?? 0) + 1);
     }
-    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+    return counts;
   }, [records]);
 
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-      {collegeCounts.map(([name, count]) => {
-        const isActive = filters.college === name;
+    <div style={{
+      display: 'flex',
+      gap: 10,
+      overflowX: 'auto',
+      paddingBottom: 4,
+      scrollbarWidth: 'thin',
+    }}>
+      {COLLEGES.map(college => {
+        const count = collegeCounts.get(college.unitName) ?? 0;
+        if (!count) return null;
+        const isActive = filters.college === college.unitName;
         const isDimmed = filters.college !== null && !isActive;
         return (
           <button
-            key={name}
-            onClick={() => onChange({ ...filters, college: isActive ? null : name })}
+            key={college.prefix}
+            onClick={() => onChange({ ...filters, college: isActive ? null : college.unitName })}
             aria-pressed={isActive}
             style={{
-              padding: '6px 14px',
-              borderRadius: 20,
-              border: isActive ? '2px solid #4b2e83' : '1.5px solid #e0daea',
-              background: isActive ? '#ede8ff' : '#fafafe',
-              color: isActive ? '#3a2070' : '#555',
-              fontWeight: isActive ? 600 : 400,
-              fontSize: 12.5,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 5,
+              padding: '10px 10px 8px',
+              borderRadius: 10,
+              border: isActive ? `2.5px solid ${college.headerColor}` : '1.5px solid #e0daea',
+              background: isActive ? `color-mix(in srgb, ${college.headerColor} 18%, #fff)` : '#fafafe',
               cursor: 'pointer',
+              opacity: isDimmed ? 0.3 : 1,
               fontFamily: 'inherit',
-              opacity: isDimmed ? 0.35 : 1,
+              minWidth: 92,
+              flexShrink: 0,
               transition: 'all 0.15s',
             }}
           >
-            {name}
-            <span style={{ marginLeft: 7, opacity: 0.55, fontSize: 11 }}>({count})</span>
+            <CollegeIcon prefix={college.prefix} headerColor={college.headerColor} size={82} showLabel={true} />
+            <div style={{
+              fontSize: 10.5,
+              fontWeight: isActive ? 700 : 500,
+              color: isActive ? '#1a1a2e' : '#555',
+              textAlign: 'center',
+              lineHeight: 1.3,
+              maxWidth: 108,
+            }}>
+              {college.name}
+            </div>
+            <div style={{ fontSize: 10, color: '#999' }}>({count})</div>
           </button>
         );
       })}
