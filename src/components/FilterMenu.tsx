@@ -313,8 +313,10 @@ function CollegeTab({
   return (
     <div style={{
       display: 'flex',
+      justifyContent: 'space-evenly',
       gap: 10,
       overflowX: 'auto',
+      overflowY: 'visible',
       paddingBottom: 8,
       scrollbarWidth: 'thin',
     }}>

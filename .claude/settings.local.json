@@ -23,7 +23,12 @@
       "Bash(docx_env/bin/pip install:*)",
       "Bash(docx_env/bin/python3 -c ':*)",
       "Bash(sort -k5 -rh)",
-      "Bash(grep -h \"from.*\\\\.png\\\\|from.*\\\\.svg\" /home/bates/Documents/RCIS26/RCIS_Tables/src/**/*.tsx /home/bates/Documents/RCIS26/RCIS_Tables/src/*.tsx /home/bates/Documents/RCIS26/RCIS_Tables/src/**/*.ts)"
+      "Bash(grep -h \"from.*\\\\.png\\\\|from.*\\\\.svg\" /home/bates/Documents/RCIS26/RCIS_Tables/src/**/*.tsx /home/bates/Documents/RCIS26/RCIS_Tables/src/*.tsx /home/bates/Documents/RCIS26/RCIS_Tables/src/**/*.ts)",
+      "Bash(unzip -l src/assets/fonts/Nohemi.zip)",
+      "Bash(unzip -o src/assets/fonts/Nohemi.zip -d /tmp/nohemi_extract/)",
+      "Bash(ls /tmp/nohemi_extract/Nohemi/Web-PS/*.woff2)",
+      "Bash(ls /tmp/nohemi_extract/Nohemi/Web-TT/*.woff)",
+      "Bash(ls /tmp/nohemi_extract/Nohemi/OpenType-TT/*.ttf)"
     ]
   }
 }
