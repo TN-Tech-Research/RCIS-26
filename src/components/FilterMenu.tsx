@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { FilterState, DEFAULT_FILTERS, ProjectRecord } from '../types';
 import { DeptStat, CollegeInfo, COLLEGES } from '../utils/colorMap';
 
@@ -300,6 +300,8 @@ function CollegeTab({
   filters: FilterState;
   onChange: (f: FilterState) => void;
 }) {
+  const [hoveredPrefix, setHoveredPrefix] = useState<string | null>(null);
+
   const collegeCounts = useMemo(() => {
     const counts = new Map<string, number>();
     for (const r of records) {
@@ -313,7 +315,7 @@ function CollegeTab({
       display: 'flex',
       gap: 10,
       overflowX: 'auto',
-      paddingBottom: 4,
+      paddingBottom: 8,
       scrollbarWidth: 'thin',
     }}>
       {COLLEGES.map(college => {
@@ -321,40 +323,46 @@ function CollegeTab({
         if (!count) return null;
         const isActive = filters.college === college.unitName;
         const isDimmed = filters.college !== null && !isActive;
+        const isHovered = hoveredPrefix === college.prefix && filters.college === null;
         return (
           <button
             key={college.prefix}
             onClick={() => onChange({ ...filters, college: isActive ? null : college.unitName })}
+            onMouseEnter={() => setHoveredPrefix(college.prefix)}
+            onMouseLeave={() => setHoveredPrefix(null)}
             aria-pressed={isActive}
             style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: 5,
-              padding: '10px 10px 8px',
+              width: 110,
+              flexShrink: 0,
+              padding: '10px 8px 10px',
               borderRadius: 10,
               border: isActive ? `2.5px solid ${college.headerColor}` : '1.5px solid #e0daea',
               background: isActive ? `color-mix(in srgb, ${college.headerColor} 18%, #fff)` : '#d9c6f7',
               cursor: 'pointer',
               opacity: isDimmed ? 0.3 : 1,
               fontFamily: 'inherit',
-              minWidth: 92,
-              flexShrink: 0,
-              transition: 'all 0.15s',
+              transform: isHovered ? 'scale(1.06) translateY(-2px)' : 'scale(1) translateY(0)',
+              boxShadow: isHovered ? '0 6px 20px rgba(75,46,131,0.28)' : 'none',
+              transition: 'transform 0.18s ease, box-shadow 0.18s ease, opacity 0.15s',
             }}
           >
             <CollegeIcon prefix={college.prefix} headerColor={college.headerColor} size={82} showLabel={true} />
+            {/* spacer to clear the pill that hangs below the icon */}
+            <div style={{ height: 14 }} />
             <div style={{
-              fontSize: 10.5,
-              fontWeight: isActive ? 700 : 500,
-              color: isActive ? '#1a1a2e' : '#555',
+              fontSize: 11,
+              fontWeight: 700,
+              color: 'rgba(52,20,98,0.92)',
               textAlign: 'center',
               lineHeight: 1.3,
-              maxWidth: 108,
+              width: '100%',
             }}>
               {college.name}
             </div>
-            <div style={{ fontSize: 10, color: '#999' }}>({count})</div>
+            <div style={{ fontSize: 10, color: 'rgba(52,20,98,0.5)', marginTop: 2 }}>({count})</div>
           </button>
         );
       })}
