@@ -71,10 +71,6 @@ function extractFooterNumber(footer: string): number | null {
   return parseInt(match[1], 10);
 }
 
-function extractFooterPrefix(footer: string): string {
-  const idx = footer.lastIndexOf('-');
-  return idx >= 0 ? footer.slice(0, idx) : footer;
-}
 
 function fallback(value: string): string {
   return value.trim() || '—';
@@ -91,9 +87,9 @@ export function parseCSV(rawText: string): ProjectRecord[] {
     return headers.indexOf(name);
   }
 
-  const iFooter = idx('Footer');
-  const iTitle = idx('What is the title of your project?');
-  const iCreatedBy = idx('Created By');
+  const iFooter = idx('Project Number');
+  const iTitle = idx('Project Title');
+  const iCreatedBy = idx('Primary Author');
   const iProjectAuthors = idx('Project Authors');
   const iClassification = idx("Primary Author's Classification");
   const iFacultyAdvisor = idx('Faculty advisor');
@@ -101,7 +97,7 @@ export function parseCSV(rawText: string): ProjectRecord[] {
   const iAbstract = idx('Abstract');
   const iPrimaryAuthorDept = idx("Primary Author's Department");
   const iDepartment = idx('Department');
-  const iUnitName = idx('Unit:UnitName');
+  const iUnitName = idx('College');
   const iPublicationConsent = idx('Publication Consent');
   const iUseOfAI = idx('Use of AI');
   const iAIDetails = idx('AI Details');
@@ -143,24 +139,6 @@ export function parseCSV(rawText: string): ProjectRecord[] {
       irbNumber: get(iIRBNumber),
       iacucNo: get(iIACUCNo),
     });
-  }
-
-  // Sort alphabetically by footer prefix, then by existing number within each prefix.
-  // This ensures dept groups are in alphabetical order regardless of how numbers
-  // appear in the CSV (e.g. ENG entries interleaved with EDU entries).
-  records.sort((a, b) => {
-    const pa = extractFooterPrefix(a.footer);
-    const pb = extractFooterPrefix(b.footer);
-    if (pa !== pb) return pa.localeCompare(pb);
-    return a.footerNumber - b.footerNumber;
-  });
-
-  // Reassign sequential footer numbers (1-based global) and rebuild footer strings.
-  for (let i = 0; i < records.length; i++) {
-    const prefix = extractFooterPrefix(records[i].footer);
-    const newNum = i + 1;
-    records[i].footer = `${prefix}-${newNum}`;
-    records[i].footerNumber = newNum;
   }
 
   return records;

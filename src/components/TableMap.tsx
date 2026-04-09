@@ -175,6 +175,10 @@ export function TableMap({
           if (filters.animalSubjects && record.iacucNo)
             badgeLines.push(isAdmin ? `IACUC ${record.iacucNo.replace(/,/g, '')}` : 'IACUC');
 
+          // Publication consent icons when filter is active and record lacks consent
+          const showPubIcon = filters.publicationConsent && record.publicationConsent !== 'Yes';
+          const isExplicitNo = record.publicationConsent === 'No';
+
           // Vertical center shifts up when we have badges (to leave room at bottom)
           const labelY = badgeLines.length > 0
             ? y + BLOCK_H / 2 - 5
@@ -260,6 +264,23 @@ export function TableMap({
                   {line}
                 </text>
               ))}
+
+              {/* Publication consent icons on dimmed blocks */}
+              {showPubIcon && isExplicitNo && (
+                <g style={{ pointerEvents: 'none' }}>
+                  <line x1={x + BLOCK_W - 11} y1={y + 4} x2={x + BLOCK_W - 5} y2={y + 10}
+                    stroke="#ef4444" strokeWidth={1.8} strokeLinecap="round" />
+                  <line x1={x + BLOCK_W - 5} y1={y + 4} x2={x + BLOCK_W - 11} y2={y + 10}
+                    stroke="#ef4444" strokeWidth={1.8} strokeLinecap="round" />
+                </g>
+              )}
+              {showPubIcon && !isExplicitNo && (
+                <circle
+                  cx={x + BLOCK_W - 8} cy={y + 7} r={3.5}
+                  fill="#eab308"
+                  style={{ pointerEvents: 'none' }}
+                />
+              )}
             </g>
           );
         })}

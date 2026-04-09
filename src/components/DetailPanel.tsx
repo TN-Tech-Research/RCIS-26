@@ -338,7 +338,7 @@ export function DetailPanel({ record, onClose }: DetailPanelProps) {
 
         <Field label="Classification" value={record.classification} />
 
-        {record.abstract !== '—' && (
+        {record.abstract !== '—' && record.publicationConsent !== 'No' && (
           <>
             <Divider />
             <div>
