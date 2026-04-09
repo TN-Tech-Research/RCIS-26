@@ -130,7 +130,8 @@ const ALL_STEPS: TutorialStep[] = [
     section: 'Admin mode',
     title: 'Faculty advisor load report',
     desc: 'A bar chart of all advisors in the current view, sorted by project count. Bar color reflects the advisor\'s majority college. Hover a row to see that advisor\'s full project list.',
-    targetId: 'admin-btn',
+    targetId: 'admin-load-section',
+    targetDelay: 200,
     adminOnly: true,
   },
   {
@@ -138,7 +139,8 @@ const ALL_STEPS: TutorialStep[] = [
     section: 'Admin mode',
     title: 'Mass email tools',
     desc: 'Collects all unique author emails from the current view. "Copy all emails" puts them on your clipboard semicolon-delimited. For 50 or fewer addresses, "Open in mail client" builds a mailto: link.',
-    targetId: 'admin-btn',
+    targetId: 'admin-email-section',
+    targetDelay: 200,
     adminOnly: true,
   },
   {
@@ -146,7 +148,8 @@ const ALL_STEPS: TutorialStep[] = [
     section: 'Admin mode',
     title: 'Stats panel',
     desc: 'Flag counts (IRB, IACUC, AI use, publication consent) as percentage pills, a pie chart by project type, and a classification breakdown — all scoped to the current filtered view.',
-    targetId: 'admin-btn',
+    targetId: 'admin-stats-section',
+    targetDelay: 200,
     adminOnly: true,
   },
   {

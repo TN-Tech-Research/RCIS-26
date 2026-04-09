@@ -315,10 +315,8 @@ function CollegeTab({
       display: 'flex',
       justifyContent: 'space-evenly',
       gap: 10,
-      overflowX: 'auto',
-      overflowY: 'visible',
-      paddingBottom: 8,
-      scrollbarWidth: 'thin',
+      overflow: 'visible',
+      padding: '8px 10px',
     }}>
       {COLLEGES.map(college => {
         const count = collegeCounts.get(college.unitName) ?? 0;

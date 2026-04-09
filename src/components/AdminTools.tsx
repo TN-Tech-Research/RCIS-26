@@ -215,7 +215,7 @@ export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onEx
 
       {/* ── Faculty Advisor Load Report ──────────────────────────────────────── */}
       {advisorData.length > 0 && (
-        <div style={{ borderBottom: '1px solid #ede9f6', padding: '14px 18px 16px', position: 'relative' }}>
+        <div id="admin-load-section" style={{ borderBottom: '1px solid #ede9f6', padding: '14px 18px 16px', position: 'relative' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 12 }}>
             <SectionLabel>Faculty Advisor Load</SectionLabel>
             <span style={{ fontSize: 11, color: '#aaa' }}>
@@ -312,7 +312,7 @@ export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onEx
 
       <div style={{ display: 'flex', gap: 0 }}>
         {/* Email tools column */}
-        <div style={{ flex: 1, padding: '16px 18px', borderRight: '1px solid #ede9f6' }}>
+        <div id="admin-email-section" style={{ flex: 1, padding: '16px 18px', borderRight: '1px solid #ede9f6' }}>
           <SectionLabel>Mass Email</SectionLabel>
           {emails.length === 0 ? (
             <div style={{ fontSize: 12, color: '#aaa', fontStyle: 'italic' }}>
@@ -393,7 +393,7 @@ export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onEx
         </div>
 
         {/* Stats column */}
-        <div style={{ flex: 1, padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div id="admin-stats-section" style={{ flex: 1, padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>
             <SectionLabel>Flags</SectionLabel>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>

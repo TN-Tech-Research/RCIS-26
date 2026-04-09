@@ -179,7 +179,28 @@ export default function App() {
         setTutorialHoverRecord(aiRec);
         break;
       }
+      case 'admin-unlock':
+        setTutorialHoverRecord(null);
+        setFiltersOpen(false);
+        setAdminOpen(false);
+        break;
+      case 'admin-load':
+      case 'admin-email':
+      case 'admin-stats':
+      case 'admin-chips':
+        setTutorialHoverRecord(null);
+        setFiltersOpen(false);
+        setAdminOpen(true);
+        break;
+      case 'admin-irb-numbers':
+        setTutorialHoverRecord(null);
+        setFiltersOpen(false);
+        setAdminOpen(false);
+        if (tutorialSavedFilters.current === null) tutorialSavedFilters.current = filters;
+        setFilters({ ...DEFAULT_FILTERS, humanSubjects: true });
+        break;
       default:
+        setTutorialHoverRecord(null);
         setFiltersOpen(false);
         break;
     }
@@ -188,6 +209,7 @@ export default function App() {
   function handleTutorialClose() {
     setTutorialOpen(false);
     setFiltersOpen(false);
+    setAdminOpen(false);
     setSelectedRecord(null);
     setTutorialHoverRecord(null);
     setFilterMenuTab('dept');
@@ -379,8 +401,15 @@ export default function App() {
                   transition: 'background 0.15s, border-color 0.15s',
                 }}
               >
-                <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                <svg width="22" height="14" viewBox="0 0 22 14" fill="currentColor" aria-hidden="true" style={{ flexShrink: 0 }}>
+                  {/* large gear */}
+                  <g transform="translate(0,0) scale(0.7)">
+                    <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                  </g>
+                  {/* small gear */}
+                  <g transform="translate(12,3) scale(0.5)">
+                    <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                  </g>
                 </svg>
                 Admin
               </button>
@@ -457,7 +486,7 @@ export default function App() {
               style={{ position: 'fixed', inset: 0, top: HEADER_H, zIndex: 140 }}
               onClick={() => setAdminOpen(false)}
             />
-            <div style={{ position: 'relative', height: 0, overflow: 'visible', zIndex: 150, flexShrink: 0 }}>
+            <div style={{ position: 'relative', height: 0, overflow: 'visible', zIndex: 250, flexShrink: 0 }}>
               <div style={{
                 position: 'absolute', top: 0, left: 0, right: 0,
                 display: 'flex', justifyContent: 'center', padding: '0 22px',

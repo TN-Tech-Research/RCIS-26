@@ -36,7 +36,7 @@ const PANEL_CSS = `
   .dp-chip:hover { background: rgba(91,62,171,0.08); }
 
   .dp-popup-btn { display: block; width: 100%; box-sizing: border-box;
-    border-radius: 6px; padding: 7px 12px; font-family: inherit; font-size: 12px;
+    border-radius: 6px; padding: 7px 12px; font-family: 'Nohemi', system-ui, -apple-system, sans-serif; font-size: 12px;
     font-weight: 500; cursor: pointer; border: 1px solid rgba(0,0,0,0.1);
     transition: background 0.12s; }
 `;
