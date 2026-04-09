@@ -14,6 +14,7 @@ import { ParticleBackground } from './components/ParticleBackground';
 import { AdminContext } from './contexts/AdminContext';
 import rawCsv from '../Table_numbers.enc?raw';
 import rcisLogo from '../RCIS.png';
+import secretAudio from './assets/secret.mp3';
 
 const records: ProjectRecord[] = parseCSV(rawCsv);
 
@@ -21,6 +22,10 @@ const HEADER_H = 68;
 const LOGO_H = HEADER_H - 18;
 
 const _SEQ = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+
+const SPARKLE_PAD = 40;
+const SPARKLE_PX = 3;
+const SPARKLE_COLORS = ['#fff9fe','#e879f9','#c084fc','#fde68a','#f0abfc','#a78bfa','#ffffff','#fbbf24'];
 
 function recordHasAuthor(record: ProjectRecord, filter: string): boolean {
   const f = filter.toLowerCase();
@@ -48,6 +53,10 @@ export default function App() {
   const seqPos = useRef(0);
   const listening = useRef(false);
   const seqTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const logoWrapperRef = useRef<HTMLDivElement>(null);
+  const sparkleCanvasRef = useRef<HTMLCanvasElement>(null);
+  const sparkleAnimRef = useRef<number | null>(null);
+  const prevIsAdminRef = useRef(isAdmin);
 
   const deptStats = useMemo(() => buildDepartmentStats(records), []);
 
@@ -92,6 +101,83 @@ export default function App() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  useEffect(() => {
+    if (isAdmin && !prevIsAdminRef.current) {
+      // Play audio
+      const audio = new Audio(secretAudio);
+      audio.play().catch(() => {});
+
+      // Sparkle animation
+      const canvas = sparkleCanvasRef.current;
+      const wrapper = logoWrapperRef.current;
+      if (canvas && wrapper) {
+        const bw = wrapper.offsetWidth;
+        const bh = wrapper.offsetHeight;
+        canvas.width  = bw + SPARKLE_PAD * 2;
+        canvas.height = bh + SPARKLE_PAD * 2;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          type Particle = {
+            x: number; y: number; vx: number; vy: number;
+            life: number; decay: number; color: string;
+            size: number; twinkle: boolean; twinklePhase: number;
+          };
+          const particles: Particle[] = [];
+          for (let i = 0; i < 90; i++) {
+            const edge = Math.random();
+            let px, py;
+            if      (edge < 0.25) { px = Math.random() * bw; py = 0; }
+            else if (edge < 0.5)  { px = bw; py = Math.random() * bh; }
+            else if (edge < 0.75) { px = Math.random() * bw; py = bh; }
+            else                  { px = 0; py = Math.random() * bh; }
+            px += SPARKLE_PAD; py += SPARKLE_PAD;
+            const angle = Math.atan2(py - (bh / 2 + SPARKLE_PAD), px - (bw / 2 + SPARKLE_PAD))
+              + (Math.random() - 0.5) * 1.2;
+            const speed = 0.8 + Math.random() * 2.5;
+            particles.push({
+              x: px, y: py,
+              vx: Math.cos(angle) * speed,
+              vy: Math.sin(angle) * speed,
+              life: 1,
+              decay: 0.016 + Math.random() * 0.02,
+              color: SPARKLE_COLORS[Math.floor(Math.random() * SPARKLE_COLORS.length)],
+              size: SPARKLE_PX * (1 + Math.floor(Math.random() * 3)),
+              twinkle: Math.random() > 0.6,
+              twinklePhase: Math.random() * Math.PI * 2,
+            });
+          }
+          if (sparkleAnimRef.current !== null) cancelAnimationFrame(sparkleAnimRef.current);
+          function drawFrame() {
+            ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
+            let alive = false;
+            for (const p of particles) {
+              p.life -= p.decay;
+              if (p.life <= 0) continue;
+              alive = true;
+              p.x += p.vx;
+              p.y += p.vy;
+              p.vy += 0.04;
+              let alpha = p.life;
+              if (p.twinkle) { p.twinklePhase += 0.3; alpha *= 0.5 + 0.5 * Math.sin(p.twinklePhase); }
+              ctx!.globalAlpha = Math.max(0, alpha);
+              ctx!.fillStyle = p.color;
+              ctx!.fillRect(
+                Math.round(p.x / SPARKLE_PX) * SPARKLE_PX,
+                Math.round(p.y / SPARKLE_PX) * SPARKLE_PX,
+                p.size, p.size,
+              );
+            }
+            ctx!.globalAlpha = 1;
+            if (alive) { sparkleAnimRef.current = requestAnimationFrame(drawFrame); }
+            else { ctx!.clearRect(0, 0, canvas!.width, canvas!.height); sparkleAnimRef.current = null; }
+          }
+          sparkleAnimRef.current = requestAnimationFrame(drawFrame);
+        }
+      }
+    }
+    prevIsAdminRef.current = isAdmin;
+  }, [isAdmin]);
 
   function handleLogoClick() {
     if (isAdmin) return;
@@ -283,19 +369,32 @@ export default function App() {
           gap: 16,
           flexShrink: 0,
         }}>
-          <button
-            id="header-logo-btn"
-            className="logo-btn"
-            onClick={handleLogoClick}
-            tabIndex={-1}
-            aria-hidden="true"
-          >
-            <img
-              src={rcisLogo}
-              alt="Research and Creative Inquiry Symposium"
-              style={{ height: LOGO_H, width: 'auto', display: 'block', flexShrink: 0 }}
+          <div ref={logoWrapperRef} style={{ position: 'relative', flexShrink: 0 }}>
+            <button
+              id="header-logo-btn"
+              className="logo-btn"
+              onClick={handleLogoClick}
+              tabIndex={-1}
+              aria-hidden="true"
+            >
+              <img
+                src={rcisLogo}
+                alt="Research and Creative Inquiry Symposium"
+                style={{ height: LOGO_H, width: 'auto', display: 'block' }}
+              />
+            </button>
+            <canvas
+              ref={sparkleCanvasRef}
+              style={{
+                position: 'absolute',
+                top: -SPARKLE_PAD,
+                left: -SPARKLE_PAD,
+                pointerEvents: 'none',
+                zIndex: 10,
+                imageRendering: 'pixelated',
+              }}
             />
-          </button>
+          </div>
 
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
             {/* Search by Author */}
@@ -401,15 +500,8 @@ export default function App() {
                   transition: 'background 0.15s, border-color 0.15s',
                 }}
               >
-                <svg width="22" height="14" viewBox="0 0 22 14" fill="currentColor" aria-hidden="true" style={{ flexShrink: 0 }}>
-                  {/* large gear */}
-                  <g transform="translate(0,0) scale(0.7)">
-                    <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-                  </g>
-                  {/* small gear */}
-                  <g transform="translate(12,3) scale(0.5)">
-                    <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-                  </g>
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style={{ flexShrink: 0 }}>
+                  <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
                 </svg>
                 Admin
               </button>
