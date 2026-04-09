@@ -78,14 +78,18 @@ function CollegeIcon({
         <span style={{
           position: 'absolute',
           bottom: Math.round(size * 0.04),
-          left: Math.round(size * 0.08),
-          fontSize: Math.round(size * 0.23),
-          fontWeight: 800,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'rgba(52,20,98,0.92)',
           color: '#fff',
-          lineHeight: 1,
-          letterSpacing: '0.02em',
+          borderRadius: 99,
+          padding: `${Math.round(size * 0.025)}px ${Math.round(size * 0.09)}px`,
+          fontSize: Math.round(size * 0.21),
+          fontWeight: 700,
+          lineHeight: 1.4,
+          letterSpacing: '0.04em',
           pointerEvents: 'none',
-          textShadow: '0 1px 3px rgba(0,0,0,0.45)',
+          whiteSpace: 'nowrap',
         }}>
           {prefix}
         </span>
@@ -245,8 +249,11 @@ function DeptTab({
         const depts = byCollege.get(college.prefix);
         if (!depts || depts.length === 0) return null;
         return (
-          <div key={college.prefix} style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-            <CollegeIcon prefix={college.prefix} headerColor={college.headerColor} size={32} showLabel={true} />
+          <div key={college.prefix} style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+            <div style={{ flexShrink: 0, paddingTop: 2 }}>
+              <CollegeIcon prefix={college.prefix} headerColor={college.headerColor} size={32} showLabel={true} />
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
             {depts.map(({ dept, count, color }) => {
               const isActive = filters.dept === dept;
               const isDimmed = filters.dept !== null && !isActive;
@@ -274,6 +281,7 @@ function DeptTab({
                 </button>
               );
             })}
+            </div>
           </div>
         );
       })}

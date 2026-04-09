@@ -42,8 +42,8 @@ function recordMatchesAdvisor(record: ProjectRecord, filter: string): boolean {
   return record.facultyAdvisor.toLowerCase() === filter.toLowerCase();
 }
 
-const FOCUS_RING = '#d4920c';
-const SELECTED_COLOR = '#d4920c';
+const FOCUS_RING = '#ffd764';
+const SELECTED_COLOR = '#ffd764';
 
 function truncate(text: string, maxLen: number): string {
   if (text.length <= maxLen) return text;
@@ -274,8 +274,8 @@ export function TableMap({
       <style>{`
         svg g[role="button"] { outline: none; }
         @keyframes selectedGlow {
-          0%, 100% { filter: drop-shadow(0 0 3px rgba(212,146,12,0.55)); }
-          50%       { filter: drop-shadow(0 0 8px rgba(212,146,12,1)); }
+          0%, 100% { filter: drop-shadow(0 0 3px rgba(255,215,100,0.55)); }
+          50%       { filter: drop-shadow(0 0 8px rgba(255,215,100,1)); }
         }
         .selected-block-rect {
           animation: selectedGlow 1.8s ease-in-out infinite;
