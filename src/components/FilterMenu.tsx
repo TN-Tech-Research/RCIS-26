@@ -77,7 +77,7 @@ function CollegeIcon({
       {showLabel && (
         <span style={{
           position: 'absolute',
-          bottom: Math.round(size * 0.04),
+          bottom: Math.round(size * -0.08),
           left: '50%',
           transform: 'translateX(-50%)',
           background: 'rgba(52,20,98,0.92)',
@@ -334,7 +334,7 @@ function CollegeTab({
               padding: '10px 10px 8px',
               borderRadius: 10,
               border: isActive ? `2.5px solid ${college.headerColor}` : '1.5px solid #e0daea',
-              background: isActive ? `color-mix(in srgb, ${college.headerColor} 18%, #fff)` : '#fafafe',
+              background: isActive ? `color-mix(in srgb, ${college.headerColor} 18%, #fff)` : '#d9c6f7',
               cursor: 'pointer',
               opacity: isDimmed ? 0.3 : 1,
               fontFamily: 'inherit',
