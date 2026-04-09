@@ -5,3 +5,4 @@ dist/
 push-csv.sh
 .claude/
 claude.md
+.codex
