@@ -6,3 +6,4 @@ push-csv.sh
 .claude/
 claude.md
 .codex
+export.csv
