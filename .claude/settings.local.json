@@ -28,7 +28,13 @@
       "Bash(unzip -o src/assets/fonts/Nohemi.zip -d /tmp/nohemi_extract/)",
       "Bash(ls /tmp/nohemi_extract/Nohemi/Web-PS/*.woff2)",
       "Bash(ls /tmp/nohemi_extract/Nohemi/Web-TT/*.woff)",
-      "Bash(ls /tmp/nohemi_extract/Nohemi/OpenType-TT/*.ttf)"
+      "Bash(ls /tmp/nohemi_extract/Nohemi/OpenType-TT/*.ttf)",
+      "Bash(identify /home/bates/Documents/RCIS26/RCIS_Tables/favicon.ico)",
+      "Bash(identify /home/bates/Documents/RCIS26/RCIS_Tables/src/assets/RCIS-Preview.png)",
+      "Bash(git -C /home/bates/Documents/RCIS26/RCIS_Tables remote get-url origin)",
+      "Bash(mkdir -p /home/bates/Documents/RCIS26/RCIS_Tables/public)",
+      "Bash(mv /home/bates/Documents/RCIS26/RCIS_Tables/favicon.ico /home/bates/Documents/RCIS26/RCIS_Tables/public/favicon.ico)",
+      "Bash(mv /home/bates/Documents/RCIS26/RCIS_Tables/src/assets/RCIS-Preview.png /home/bates/Documents/RCIS26/RCIS_Tables/public/RCIS-Preview.png)"
     ]
   }
 }
