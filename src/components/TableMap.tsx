@@ -27,6 +27,8 @@ interface TableMapProps {
   advisorFilter: string;
   onSelect: (record: ProjectRecord) => void;
   tutorialHoverRecord?: ProjectRecord | null;
+  /** When set, all blocks except this footer are dimmed (mobile "View on Map" focus) */
+  focusFooter?: string | null;
 }
 
 function recordMatchesAuthor(record: ProjectRecord, filter: string): boolean {
@@ -58,6 +60,7 @@ export function TableMap({
   advisorFilter,
   onSelect,
   tutorialHoverRecord,
+  focusFooter,
 }: TableMapProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
@@ -155,6 +158,7 @@ export function TableMap({
           const isSelected = selectedRecord?.footer === record.footer;
 
           const isDimmed =
+            (focusFooter != null && record.footer !== focusFooter) ||
             (filters.dept !== null && record.primaryAuthorDepartment !== filters.dept) ||
             (filters.college !== null && record.unitName !== filters.college) ||
             (filters.projectType !== null && record.projectType !== filters.projectType) ||

@@ -328,7 +328,27 @@ export default function App() {
   if (isMobile) {
     return (
       <AdminContext.Provider value={isAdmin}>
-        <MobileView records={records} logoSrc={rcisLogo} />
+        <MobileView
+          records={records}
+          filteredRecords={filteredRecords}
+          logoSrc={rcisLogo}
+          filters={filters}
+          onFiltersChange={setFilters}
+          deptStats={deptStats}
+          authorInput={authorInput}
+          authorFilter={authorFilter}
+          onAuthorInput={handleAuthorInput}
+          onClearAuthor={() => { setAuthorInput(''); setAuthorFilter(''); }}
+          advisorInput={advisorInput}
+          advisorFilter={advisorFilter}
+          onAdvisorInput={handleAdvisorInput}
+          onClearAdvisor={() => { setAdvisorInput(''); setAdvisorFilter(''); }}
+          authorNames={authorNames}
+          advisorNames={advisorNames}
+          selectedRecord={selectedRecord}
+          onSelect={handleSelect}
+          onClearSelected={() => setSelectedRecord(null)}
+        />
       </AdminContext.Provider>
     );
   }

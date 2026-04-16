@@ -4,10 +4,13 @@ import { ProjectRecord } from '../types';
 import { getDepartmentColor } from '../utils/colorMap';
 import { parsePeople, Person } from '../utils/nameParser';
 import { useAdmin } from '../contexts/AdminContext';
+import { useMobile } from '../hooks/useMobile';
 
 interface DetailPanelProps {
   record: ProjectRecord;
   onClose: () => void;
+  /** Mobile only: called when user taps "View on Map" inside the panel */
+  onViewOnMap?: () => void;
 }
 
 // ── Styles (injected once) ────────────────────────────────────────────────────
@@ -23,6 +26,19 @@ const PANEL_CSS = `
   }
   .dp-enter { animation: drawerSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
   .dp-exit  { animation: drawerSlideOut 0.22s cubic-bezier(0.4, 0, 0.8, 1) forwards; }
+
+  @keyframes drawerSlideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+  @keyframes drawerSlideDown {
+    from { transform: translateY(0); }
+    to   { transform: translateY(100%); }
+  }
+  .dp-mobile-enter { animation: drawerSlideUp 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  .dp-mobile-exit  { animation: drawerSlideDown 0.2s cubic-bezier(0.4, 0, 1, 1) forwards; }
+
+  .dp-map-btn:active { opacity: 0.72 !important; }
 
   .dp-scroll { -ms-overflow-style: none; scrollbar-width: none; }
   .dp-scroll::-webkit-scrollbar { display: none; }
@@ -201,9 +217,10 @@ const LABEL_STYLE: React.CSSProperties = {
 
 // ── Panel ─────────────────────────────────────────────────────────────────────
 
-export function DetailPanel({ record, onClose }: DetailPanelProps) {
+export function DetailPanel({ record, onClose, onViewOnMap }: DetailPanelProps) {
   ensureStyles();
 
+  const isMobile = useMobile();
   const [closing, setClosing] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -234,28 +251,46 @@ export function DetailPanel({ record, onClose }: DetailPanelProps) {
     lineHeight: 1.4,
   };
 
+  const enterClass = isMobile ? 'dp-mobile-enter' : 'dp-enter';
+  const exitClass  = isMobile ? 'dp-mobile-exit'  : 'dp-exit';
+
+  const desktopContainerStyle: React.CSSProperties = {
+    position: 'absolute',
+    right: 0,
+    top: 8,
+    bottom: 0,
+    zIndex: 10,
+    width: 360,
+    minWidth: 300,
+    borderLeft: '1px solid rgba(75,46,131,0.18)',
+    borderRadius: '12px 0 0 12px',
+    boxShadow: '-6px 0 32px rgba(45,26,94,0.13)',
+  };
+
+  const mobileContainerStyle: React.CSSProperties = {
+    position: 'absolute',
+    inset: 0,
+    zIndex: 50,
+    width: '100%',
+    minWidth: 'unset',
+    borderLeft: 'none',
+    borderRadius: 0,
+    boxShadow: '0 -8px 32px rgba(45,26,94,0.2)',
+  };
+
   return (
     <div
       id="detail-panel-root"
       ref={panelRef}
       role="complementary"
       aria-label="Project details"
-      className={closing ? 'dp-exit' : 'dp-enter'}
+      className={closing ? exitClass : enterClass}
       onAnimationEnd={handleAnimationEnd}
       style={{
-        position: 'absolute',
-        right: 0,
-        top: 8,
-        bottom: 0,
-        zIndex: 10,
-        width: 360,
-        minWidth: 300,
+        ...(isMobile ? mobileContainerStyle : desktopContainerStyle),
         display: 'flex',
         flexDirection: 'column',
-        borderLeft: '1px solid rgba(75,46,131,0.18)',
-        borderRadius: '12px 0 0 12px',
         background: 'linear-gradient(160deg, #ede9f8 0%, #e0daf0 60%, #d8d2ec 100%)',
-        boxShadow: '-6px 0 32px rgba(45,26,94,0.13)',
         overflow: 'hidden',
         willChange: 'transform',
       }}
@@ -317,7 +352,7 @@ export function DetailPanel({ record, onClose }: DetailPanelProps) {
           </div>
         )}
 
-        {/* Dept badge + footer ID */}
+        {/* Dept badge + footer ID + mobile View on Map */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           <span style={{ ...BADGE_STYLE, background: badgeBg, color: badgeText }}>
             {record.primaryAuthorDepartment}
@@ -325,11 +360,40 @@ export function DetailPanel({ record, onClose }: DetailPanelProps) {
           <span style={{ ...BADGE_STYLE, background: 'rgba(45,26,94,0.1)', color: '#2d1a5e' }}>
             {record.footer}
           </span>
+          {isMobile && onViewOnMap && (
+            <button
+              className="dp-map-btn"
+              onClick={onViewOnMap}
+              style={{
+                marginLeft: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                height: 28,
+                padding: '0 10px',
+                borderRadius: 20,
+                border: '1px solid rgba(75,46,131,0.28)',
+                background: 'rgba(75,46,131,0.08)',
+                color: '#4b2e83',
+                fontSize: 11,
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              <svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+              </svg>
+              View on Map
+            </button>
+          )}
         </div>
       </div>
 
       {/* ── Scrollable body ── */}
-      <div className="dp-scroll" style={{ flex: 1, overflowY: 'auto', padding: '18px 18px 24px' }}>
+      <div className="dp-scroll" style={{ flex: 1, overflowY: 'auto', padding: '18px 18px 24px', overscrollBehavior: 'contain' }}>
         <PersonField label="Primary Author" raw={record.primaryAuthor} />
         <PersonField label="Project Authors" raw={record.projectAuthors} emailAll />
         <PersonField label="Faculty Advisor" raw={record.facultyAdvisor} />
@@ -354,6 +418,9 @@ export function DetailPanel({ record, onClose }: DetailPanelProps) {
             </div>
           </>
         )}
+
+        {/* Safe-area bottom padding on mobile */}
+        {isMobile && <div style={{ height: 'env(safe-area-inset-bottom)', minHeight: 12 }} />}
       </div>
     </div>
   );

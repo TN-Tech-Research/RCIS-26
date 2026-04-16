@@ -312,11 +312,17 @@ function CollegeTab({
 
   return (
     <div style={{
+      overflowX: 'auto',
+      WebkitOverflowScrolling: 'touch',
+      scrollbarWidth: 'none',
+      msOverflowStyle: 'none',
+      padding: '8px 10px',
+    } as React.CSSProperties}>
+    <div style={{
       display: 'flex',
       justifyContent: 'space-evenly',
       gap: 10,
-      overflow: 'visible',
-      padding: '8px 10px',
+      minWidth: 'max-content',
     }}>
       {COLLEGES.map(college => {
         const count = collegeCounts.get(college.unitName) ?? 0;
@@ -366,6 +372,7 @@ function CollegeTab({
           </button>
         );
       })}
+    </div>
     </div>
   );
 }

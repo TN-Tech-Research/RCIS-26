@@ -34,7 +34,10 @@
       "Bash(git -C /home/bates/Documents/RCIS26/RCIS_Tables remote get-url origin)",
       "Bash(mkdir -p /home/bates/Documents/RCIS26/RCIS_Tables/public)",
       "Bash(mv /home/bates/Documents/RCIS26/RCIS_Tables/favicon.ico /home/bates/Documents/RCIS26/RCIS_Tables/public/favicon.ico)",
-      "Bash(mv /home/bates/Documents/RCIS26/RCIS_Tables/src/assets/RCIS-Preview.png /home/bates/Documents/RCIS26/RCIS_Tables/public/RCIS-Preview.png)"
+      "Bash(mv /home/bates/Documents/RCIS26/RCIS_Tables/src/assets/RCIS-Preview.png /home/bates/Documents/RCIS26/RCIS_Tables/public/RCIS-Preview.png)",
+      "Bash(grep -E \"\\(src/|package\\\\.json$\\)\")",
+      "Bash(head -50 /home/bates/Documents/RCIS26/RCIS_Tables/scripts/*.js)",
+      "Bash(xargs cat *)"
     ]
   }
 }
