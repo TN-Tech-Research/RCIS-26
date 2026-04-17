@@ -4,6 +4,7 @@ import { ProjectRecord, FilterState, TooltipState } from '../types';
 import { getDepartmentColor } from '../utils/colorMap';
 import { formatPeopleForTooltip, parsePeople } from '../utils/nameParser';
 import { useAdmin } from '../contexts/AdminContext';
+import { useMobile } from '../hooks/useMobile';
 import {
   buildLayout,
   blockX,
@@ -66,6 +67,7 @@ export function TableMap({
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const [tutorialTooltip, setTutorialTooltip] = useState<TooltipState | null>(null);
   const isAdmin = useAdmin();
+  const isMobile = useMobile();
 
   useEffect(() => {
     if (!tutorialHoverRecord) { setTutorialTooltip(null); return; }
@@ -85,25 +87,30 @@ export function TableMap({
   const svgH = svgHeight(rows);
 
   const handleMouseEnter = useCallback((e: React.MouseEvent, record: ProjectRecord) => {
+    if (isMobile) return;
     setTooltip({ x: e.clientX, y: e.clientY, record });
-  }, []);
+  }, [isMobile]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (isMobile) return;
     setTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
-  }, []);
+  }, [isMobile]);
 
   const handleMouseLeave = useCallback(() => {
+    if (isMobile) return;
     setTooltip(null);
-  }, []);
+  }, [isMobile]);
 
   const handleFocus = useCallback((e: React.FocusEvent<SVGGElement>, record: ProjectRecord) => {
+    if (isMobile) return;
     const rect = e.currentTarget.getBoundingClientRect();
     setTooltip({ x: rect.left + rect.width / 2, y: rect.bottom + 4, record });
-  }, []);
+  }, [isMobile]);
 
   const handleBlur = useCallback(() => {
+    if (isMobile) return;
     setTooltip(null);
-  }, []);
+  }, [isMobile]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent, record: ProjectRecord) => {
     if (e.key === 'Enter' || e.key === ' ') {
