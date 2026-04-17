@@ -5,6 +5,7 @@ import { getDepartmentColor, DeptStat } from '../utils/colorMap';
 import { FilterMenu, FilterTab } from './FilterMenu';
 import { DetailPanel } from './DetailPanel';
 import { TableMap } from './TableMap';
+import { ParticleBackground } from './ParticleBackground';
 import {
   buildLayout, rowYPositions, blockX, blockY, numRows,
   BLOCK_W, BLOCK_H,
@@ -612,6 +613,7 @@ export default function MobileView({
 
       {/* ── Main content (list or map) ─────────────────────────────────────── */}
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        <ParticleBackground />
 
         {mapMode ? (
           /* ── Map view ── */

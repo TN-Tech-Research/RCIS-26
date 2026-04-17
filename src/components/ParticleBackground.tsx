@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { useMobile } from '../hooks/useMobile';
 import particleIconUrl from '../assets/particle-icon.svg';
 
 // ── Tuning constants ──────────────────────────────────────────────────────────
@@ -41,7 +40,6 @@ function initParticles(w: number, h: number): Particle[] {
 }
 
 export function ParticleBackground() {
-  const isMobile = useMobile();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const mousePosRef = useRef<{ x: number; y: number } | null>(null);
@@ -64,7 +62,7 @@ export function ParticleBackground() {
     };
   }, []);
 
-  // Track mouse position via window events (canvas has pointer-events: none)
+  // Track mouse and touch position via window events (canvas has pointer-events: none)
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
       mousePosRef.current = { x: e.clientX, y: e.clientY };
@@ -72,11 +70,22 @@ export function ParticleBackground() {
     const onLeave = () => {
       mousePosRef.current = null;
     };
+    const onTouch = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (t) mousePosRef.current = { x: t.clientX, y: t.clientY };
+    };
+    const onTouchEnd = () => {
+      mousePosRef.current = null;
+    };
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseleave', onLeave);
+    window.addEventListener('touchmove', onTouch, { passive: true });
+    window.addEventListener('touchend', onTouchEnd);
     return () => {
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseleave', onLeave);
+      window.removeEventListener('touchmove', onTouch);
+      window.removeEventListener('touchend', onTouchEnd);
     };
   }, []);
 
@@ -162,8 +171,6 @@ export function ParticleBackground() {
       window.removeEventListener('resize', resize);
     };
   }, [imgLoaded]);
-
-  if (isMobile) return null;
 
   return (
     <canvas
