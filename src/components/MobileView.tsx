@@ -99,7 +99,7 @@ function MobileListItem({ record, isExpanded, onToggle, onViewDetails, onViewOnM
           gap: 8,
           cursor: 'pointer',
           userSelect: 'none',
-          background: isExpanded ? '#f0ecf9' : '#fff',
+          background: isExpanded ? '#f0ecf9' : 'rgba(255,255,255,0.82)',
           transition: 'background 0.18s ease',
         }}
       >
@@ -612,7 +612,7 @@ export default function MobileView({
       </header>
 
       {/* ── Main content (list or map) ─────────────────────────────────────── */}
-      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#f5f2fc' }}>
         <ParticleBackground />
 
         {mapMode ? (
@@ -624,7 +624,6 @@ export default function MobileView({
               inset: 0,
               overflow: 'auto',
               WebkitOverflowScrolling: 'touch',
-              background: '#f4f1f9',
             } as React.CSSProperties}
           >
             <TableMap
