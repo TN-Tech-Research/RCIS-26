@@ -41,7 +41,11 @@
       "Bash(awk -F',' 'NR>1 && $4==\"\"' /home/bates/Documents/RCIS26/RCIS_Tables/AvgScore.csv)",
       "Bash(awk -F',' '{print NR, $2, $54}')",
       "Bash(awk -F',' 'NR>1 && $4==\"null\"' /home/bates/Documents/RCIS26/RCIS_Tables/AvgScore.csv)",
-      "Bash(awk 'NR>1' /home/bates/Documents/RCIS26/RCIS_Tables/AvgScore.csv)"
+      "Bash(awk 'NR>1' /home/bates/Documents/RCIS26/RCIS_Tables/AvgScore.csv)",
+      "Bash(git -C /home/bates/Documents/RCIS26/RCIS_Tables log --oneline -8)",
+      "Bash(git -C /home/bates/Documents/RCIS26/RCIS_Tables status)",
+      "Bash(git -C /home/bates/Documents/RCIS26/RCIS_Tables remote -v)",
+      "Bash(git -C /home/bates/Documents/RCIS26/RCIS_Tables branch -a)"
     ]
   }
 }
