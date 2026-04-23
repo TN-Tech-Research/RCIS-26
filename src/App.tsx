@@ -21,6 +21,7 @@ import { parseJudges } from './utils/judgesParser';
 import type { JudgesByProject } from './utils/judgesParser';
 import { parseAvgScores } from './utils/avgScoreParser';
 import { calcAwards } from './utils/awardsCalc';
+import rawAvgScore from '../AvgScore.enc?raw';
 
 const records: ProjectRecord[] = parseCSV(rawCsv);
 
@@ -39,10 +40,8 @@ const _jg = import.meta.glob<string>('/Judges.csv', { query: '?raw', import: 'de
 const _rawJudges: string = (_jg['/Judges.csv'] as string) ?? '';
 const { byProject: judgesByProject }: { byProject: JudgesByProject } = parseJudges(_rawJudges);
 
-// Average scores (gitignored; admin-only awards calc + winner ribbon on map)
-const _ag = import.meta.glob<string>('/AvgScore.csv', { query: '?raw', import: 'default', eager: true });
-const _rawAvgScore: string = (_ag['/AvgScore.csv'] as string) ?? '';
-const avgScoreMap = parseAvgScores(_rawAvgScore);
+// Average scores (encrypted — bundled via AvgScore.enc, decrypted at build time)
+const avgScoreMap = parseAvgScores(rawAvgScore);
 const winnersSet = new Set(calcAwards(records, avgScoreMap).flatMap(g => g.winners.map(w => w.record.footer)));
 
 const HEADER_H = 68;

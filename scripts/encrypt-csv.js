@@ -12,14 +12,19 @@ if (!keyHex || keyHex.length !== 64) {
   process.exit(1);
 }
 
-const csvPath = path.resolve(__dirname, '..', 'Table_numbers.csv');
-const encPath = path.resolve(__dirname, '..', 'Table_numbers.enc');
-
-const csv = fs.readFileSync(csvPath, 'utf8');
 const key = Buffer.from(keyHex, 'hex');
-const iv = crypto.randomBytes(16);
-const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-let encrypted = cipher.update(csv, 'utf8', 'base64');
-encrypted += cipher.final('base64');
-fs.writeFileSync(encPath, iv.toString('hex') + ':' + encrypted, 'utf8');
-console.log('Written: Table_numbers.enc');
+
+function encryptFile(name) {
+  const csvPath = path.resolve(__dirname, '..', name + '.csv');
+  const encPath = path.resolve(__dirname, '..', name + '.enc');
+  const csv = fs.readFileSync(csvPath, 'utf8');
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+  let encrypted = cipher.update(csv, 'utf8', 'base64');
+  encrypted += cipher.final('base64');
+  fs.writeFileSync(encPath, iv.toString('hex') + ':' + encrypted, 'utf8');
+  console.log(`Written: ${name}.enc`);
+}
+
+encryptFile('Table_numbers');
+encryptFile('AvgScore');
