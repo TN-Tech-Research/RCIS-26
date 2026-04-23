@@ -35,6 +35,8 @@ interface MobileViewProps {
   selectedRecord: ProjectRecord | null;
   onSelect: (r: ProjectRecord) => void;
   onClearSelected: () => void;
+  feedback?: import('../utils/scorecardParser').FeedbackMap;
+  winnersSet?: Set<string>;
 }
 
 // ─── MobileListItem ─────────────────────────────────────────────────────────────
@@ -256,6 +258,8 @@ export default function MobileView({
   selectedRecord,
   onSelect,
   onClearSelected,
+  feedback,
+  winnersSet,
 }: MobileViewProps) {
   const [textSearch, setTextSearch] = useState('');
   const [searchScope, setSearchScope] = useState<SearchScope>('all');
@@ -635,6 +639,7 @@ export default function MobileView({
               onSelect={r => { setMapDimFooter(null); onSelect(r); }}
               tutorialHoverRecord={null}
               focusFooter={mapDimFooter}
+              winnersSet={winnersSet}
             />
           </div>
         ) : (
@@ -675,8 +680,8 @@ export default function MobileView({
           <DetailPanel
             record={selectedRecord}
             onClose={onClearSelected}
+            feedback={feedback}
             onViewOnMap={() => {
-              // Close immediately (no animation) then switch to map
               onClearSelected();
               focusOnMap(selectedRecord);
             }}

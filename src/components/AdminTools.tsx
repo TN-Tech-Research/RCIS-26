@@ -2,11 +2,16 @@ import { useMemo, useRef, useState } from 'react';
 import { ProjectRecord } from '../types';
 import { parsePeople } from '../utils/nameParser';
 import { COLLEGES, getDepartmentCollege } from '../utils/colorMap';
+import type { AvgScoreMap } from '../utils/avgScoreParser';
+import type { JudgesByProject } from '../utils/judgesParser';
+import { AwardsTab } from './AwardsTab';
 
 interface AdminToolsProps {
   filteredRecords: ProjectRecord[];
   allRecords: ProjectRecord[];
   hasActiveFilters: boolean;
+  avgScoreMap: AvgScoreMap;
+  judgesByProject: JudgesByProject;
   onExit: () => void;
   onClose: () => void;
 }
@@ -43,9 +48,10 @@ interface TooltipInfo {
   anchorX: number;
 }
 
-export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onExit, onClose }: AdminToolsProps) {
+export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, avgScoreMap, judgesByProject, onExit, onClose }: AdminToolsProps) {
   const [copied, setCopied] = useState(false);
   const [advisorTooltip, setAdvisorTooltip] = useState<TooltipInfo | null>(null);
+  const [activeTab, setActiveTab] = useState<'tools' | 'awards'>('tools');
   const containerRef = useRef<HTMLDivElement>(null);
 
   const emails = useMemo(() => collectEmails(filteredRecords), [filteredRecords]);
@@ -212,6 +218,34 @@ export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onEx
           </button>
         </div>
       </div>
+
+      {/* ── Tab bar ── */}
+      <div style={{ display: 'flex', borderBottom: '1px solid rgba(75,46,131,0.12)', background: 'rgba(248,246,255,0.7)' }}>
+        {(['tools', 'awards'] as const).map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{
+              flex: 1, height: 36, border: 'none', cursor: 'pointer',
+              fontFamily: 'inherit', fontSize: 11.5, fontWeight: 600,
+              background: activeTab === tab ? 'rgba(75,46,131,0.1)' : 'transparent',
+              color: activeTab === tab ? '#4b2e83' : '#9990b0',
+              borderBottom: activeTab === tab ? '2px solid #4b2e83' : '2px solid transparent',
+              transition: 'color 0.14s, background 0.14s',
+              textTransform: 'uppercase' as const,
+              letterSpacing: '0.06em',
+            }}
+          >
+            {tab === 'tools' ? 'Tools' : 'Awards'}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'awards' && (
+        <AwardsTab allRecords={allRecords} avgScoreMap={avgScoreMap} judgesByProject={judgesByProject} />
+      )}
+
+      {activeTab === 'tools' && <>
 
       {/* ── Faculty Advisor Load Report ──────────────────────────────────────── */}
       {advisorData.length > 0 && (
@@ -415,6 +449,8 @@ export function AdminTools({ filteredRecords, allRecords, hasActiveFilters, onEx
           </div>
         </div>
       </div>
+
+      </>}
     </div>
   );
 }

@@ -30,6 +30,8 @@ interface TableMapProps {
   tutorialHoverRecord?: ProjectRecord | null;
   /** When set, all blocks except this footer are dimmed (mobile "View on Map" focus) */
   focusFooter?: string | null;
+  /** Footer IDs that have won an award — shows a ribbon indicator */
+  winnersSet?: Set<string>;
 }
 
 function recordMatchesAuthor(record: ProjectRecord, filter: string): boolean {
@@ -62,6 +64,7 @@ export function TableMap({
   onSelect,
   tutorialHoverRecord,
   focusFooter,
+  winnersSet,
 }: TableMapProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
@@ -131,6 +134,7 @@ export function TableMap({
         role="img"
         style={{ display: 'block', userSelect: 'none' }}
       >
+        <defs/>
         {/* Row direction arrows */}
         <g id="row-arrows" aria-hidden="true">
           {Array.from({ length: rows }, (_, rowIdx) => {
@@ -248,7 +252,7 @@ export function TableMap({
                 y={labelY}
                 textAnchor="middle"
                 dominantBaseline="middle"
-                fontSize={11}
+                fontSize={14}
                 fontWeight={isSelected ? 700 : 600}
                 fontFamily="Nohemi, system-ui, sans-serif"
                 fill={color.text}
@@ -289,6 +293,16 @@ export function TableMap({
                 <circle
                   cx={x + BLOCK_W - 8} cy={y + 7} r={3.5}
                   fill="#eab308"
+                  style={{ pointerEvents: 'none' }}
+                />
+              )}
+
+              {/* Winner ribbon — bookmark-style tag at top-right corner */}
+              {winnersSet?.has(record.footer) && (
+                <polygon
+                  points={`${x + BLOCK_W - 9},${y - 1} ${x + BLOCK_W},${y - 1} ${x + BLOCK_W},${y + 15} ${x + BLOCK_W - 4.5},${y + 12} ${x + BLOCK_W - 9},${y + 15}`}
+                  fill="#ffd764"
+                  opacity={isDimmed ? 0.15 : 1}
                   style={{ pointerEvents: 'none' }}
                 />
               )}

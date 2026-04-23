@@ -5,10 +5,13 @@ import { getDepartmentColor } from '../utils/colorMap';
 import { parsePeople, Person } from '../utils/nameParser';
 import { useAdmin } from '../contexts/AdminContext';
 import { useMobile } from '../hooks/useMobile';
+import type { FeedbackMap } from '../utils/scorecardParser';
+import { FeedbackModal } from './FeedbackModal';
 
 interface DetailPanelProps {
   record: ProjectRecord;
   onClose: () => void;
+  feedback?: FeedbackMap;
   /** Mobile only: called when user taps "View on Map" inside the panel */
   onViewOnMap?: () => void;
 }
@@ -217,17 +220,21 @@ const LABEL_STYLE: React.CSSProperties = {
 
 // ── Panel ─────────────────────────────────────────────────────────────────────
 
-export function DetailPanel({ record, onClose, onViewOnMap }: DetailPanelProps) {
+export function DetailPanel({ record, onClose, onViewOnMap, feedback }: DetailPanelProps) {
   ensureStyles();
 
   const isMobile = useMobile();
   const [closing, setClosing] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  const projectFeedback = feedback?.[record.footer];
+  const hasFeedback = !!projectFeedback?.judges.length;
 
   const color = getDepartmentColor(record.primaryAuthorDepartment);
 
-  // Reset closing state when record changes
-  useEffect(() => { setClosing(false); }, [record]);
+  // Reset closing + feedback state when record changes
+  useEffect(() => { setClosing(false); setShowFeedback(false); }, [record]);
 
   function handleClose() {
     setClosing(true);
@@ -352,7 +359,7 @@ export function DetailPanel({ record, onClose, onViewOnMap }: DetailPanelProps) 
           </div>
         )}
 
-        {/* Dept badge + footer ID + mobile View on Map */}
+        {/* Dept badge + footer ID + feedback + mobile View on Map */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           <span style={{ ...BADGE_STYLE, background: badgeBg, color: badgeText }}>
             {record.primaryAuthorDepartment}
@@ -360,6 +367,32 @@ export function DetailPanel({ record, onClose, onViewOnMap }: DetailPanelProps) 
           <span style={{ ...BADGE_STYLE, background: 'rgba(45,26,94,0.1)', color: '#2d1a5e' }}>
             {record.footer}
           </span>
+          {hasFeedback && (
+            <button
+              onClick={() => setShowFeedback(true)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                height: 22, padding: '0 9px',
+                borderRadius: 20,
+                border: '1px solid rgba(75,46,131,0.35)',
+                background: 'linear-gradient(135deg, rgba(75,46,131,0.14) 0%, rgba(212,146,12,0.1) 100%)',
+                color: '#4b2e83',
+                fontSize: 11, fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                transition: 'background 0.14s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(75,46,131,0.18)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'linear-gradient(135deg, rgba(75,46,131,0.14) 0%, rgba(212,146,12,0.1) 100%)')}
+            >
+              <svg width="10" height="10" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd"/>
+              </svg>
+              Feedback
+            </button>
+          )}
           {isMobile && onViewOnMap && (
             <button
               className="dp-map-btn"
@@ -422,6 +455,16 @@ export function DetailPanel({ record, onClose, onViewOnMap }: DetailPanelProps) 
         {/* Safe-area bottom padding on mobile */}
         {isMobile && <div style={{ height: 'env(safe-area-inset-bottom)', minHeight: 12 }} />}
       </div>
+
+      {/* ── Feedback modal (overlays this panel) ── */}
+      {showFeedback && projectFeedback && (
+        <FeedbackModal
+          record={record}
+          feedback={projectFeedback}
+          onClose={() => setShowFeedback(false)}
+          isMobile={isMobile}
+        />
+      )}
     </div>
   );
 }

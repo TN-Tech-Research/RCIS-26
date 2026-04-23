@@ -7,3 +7,7 @@ push-csv.sh
 claude.md
 .codex
 export.csv
+scorecard.csv
+final_scorecard.csv
+Judges.csv
+AvgScore.csv

@@ -37,7 +37,11 @@
       "Bash(mv /home/bates/Documents/RCIS26/RCIS_Tables/src/assets/RCIS-Preview.png /home/bates/Documents/RCIS26/RCIS_Tables/public/RCIS-Preview.png)",
       "Bash(grep -E \"\\(src/|package\\\\.json$\\)\")",
       "Bash(head -50 /home/bates/Documents/RCIS26/RCIS_Tables/scripts/*.js)",
-      "Bash(xargs cat *)"
+      "Bash(xargs cat *)",
+      "Bash(awk -F',' 'NR>1 && $4==\"\"' /home/bates/Documents/RCIS26/RCIS_Tables/AvgScore.csv)",
+      "Bash(awk -F',' '{print NR, $2, $54}')",
+      "Bash(awk -F',' 'NR>1 && $4==\"null\"' /home/bates/Documents/RCIS26/RCIS_Tables/AvgScore.csv)",
+      "Bash(awk 'NR>1' /home/bates/Documents/RCIS26/RCIS_Tables/AvgScore.csv)"
     ]
   }
 }

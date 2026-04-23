@@ -15,8 +15,35 @@ import { AdminContext } from './contexts/AdminContext';
 import rawCsv from '../Table_numbers.enc?raw';
 import rcisLogo from '../RCIS.png';
 import secretAudio from './assets/secret.mp3';
+import { parseScorecard } from './utils/scorecardParser';
+import type { FeedbackMap } from './utils/scorecardParser';
+import { parseJudges } from './utils/judgesParser';
+import type { JudgesByProject } from './utils/judgesParser';
+import { parseAvgScores } from './utils/avgScoreParser';
+import { calcAwards } from './utils/awardsCalc';
 
 const records: ProjectRecord[] = parseCSV(rawCsv);
+
+// Admin scorecard (gitignored — admin-only preview during judging)
+const _sg = import.meta.glob<string>('/scorecard.csv', { query: '?raw', import: 'default', eager: true });
+const _rawScorecard: string = (_sg['/scorecard.csv'] as string) ?? '';
+const adminFeedbackMap: FeedbackMap = parseScorecard(_rawScorecard);
+
+// Public scorecard (gitignored until released; add final_scorecard.csv at build time to enable student access)
+const _fsg = import.meta.glob<string>('/final_scorecard.csv', { query: '?raw', import: 'default', eager: true });
+const _rawFinalScorecard: string = (_fsg['/final_scorecard.csv'] as string) ?? '';
+const publicFeedbackMap: FeedbackMap = parseScorecard(_rawFinalScorecard);
+
+// Judges data (gracefully empty if file absent)
+const _jg = import.meta.glob<string>('/Judges.csv', { query: '?raw', import: 'default', eager: true });
+const _rawJudges: string = (_jg['/Judges.csv'] as string) ?? '';
+const { byProject: judgesByProject }: { byProject: JudgesByProject } = parseJudges(_rawJudges);
+
+// Average scores (gitignored; admin-only awards calc + winner ribbon on map)
+const _ag = import.meta.glob<string>('/AvgScore.csv', { query: '?raw', import: 'default', eager: true });
+const _rawAvgScore: string = (_ag['/AvgScore.csv'] as string) ?? '';
+const avgScoreMap = parseAvgScores(_rawAvgScore);
+const winnersSet = new Set(calcAwards(records, avgScoreMap).flatMap(g => g.winners.map(w => w.record.footer)));
 
 const HEADER_H = 68;
 const LOGO_H = HEADER_H - 18;
@@ -81,6 +108,9 @@ export default function App() {
   const advisorSet = useMemo(() => new Set(advisorNames), [advisorNames]);
 
   const isMobile = useMobile();
+
+  // Admins see the live scorecard; everyone else sees the public release (if present)
+  const feedbackMap = isAdmin ? adminFeedbackMap : publicFeedbackMap;
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -348,6 +378,8 @@ export default function App() {
           selectedRecord={selectedRecord}
           onSelect={handleSelect}
           onClearSelected={() => setSelectedRecord(null)}
+          feedback={feedbackMap}
+          winnersSet={isAdmin ? winnersSet : undefined}
         />
       </AdminContext.Provider>
     );
@@ -607,6 +639,8 @@ export default function App() {
                   filteredRecords={filteredRecords}
                   allRecords={records}
                   hasActiveFilters={hasActiveFilters || !!authorFilter || !!advisorFilter}
+                  avgScoreMap={avgScoreMap}
+                  judgesByProject={judgesByProject}
                   onExit={() => { localStorage.removeItem('rcis_admin'); setIsAdmin(false); setAdminOpen(false); }}
                   onClose={() => setAdminOpen(false)}
                 />
@@ -632,12 +666,17 @@ export default function App() {
                 advisorFilter={advisorFilter}
                 onSelect={handleSelect}
                 tutorialHoverRecord={tutorialHoverRecord}
+                winnersSet={isAdmin ? winnersSet : undefined}
               />
             )}
           </div>
 
           {selectedRecord && (
-            <DetailPanel record={selectedRecord} onClose={() => setSelectedRecord(null)} />
+            <DetailPanel
+              record={selectedRecord}
+              onClose={() => setSelectedRecord(null)}
+              feedback={feedbackMap}
+            />
           )}
         </div>
       </div>
